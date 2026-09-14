@@ -1051,8 +1051,9 @@ class Game {
     if (!this.active) { this.last = t; return; }
     let dt = t - this.last; this.last = t; if (dt > 250) dt = 250;
     this.acc += dt;
-    while (this.acc >= 1000 / 60) { this.update(); this.acc -= 1000 / 60; }
-    this.render();
+    try { while (this.acc >= 1000 / 60) { this.update(); this.acc -= 1000 / 60; } }
+    catch (err) { console.error('update failed', err); this.acc = 0; }
+    try { this.render(); } catch (err) { console.error('render failed', err); }
   }
   update() {
     this.frame++;
@@ -1158,7 +1159,7 @@ class Game {
     e.alive = false;
     if (e.type === 'lantern') { this.dark[e.sx + ',' + e.sy] = true; this.addScore(SCORE.lantern, e.x + 4, e.y); }
     else this.addScore(SCORE.enemy, e.x + e.w / 2, e.y);
-    this.explosions.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, t: 14, r: 10, soft: true });
+    this.explosions.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, t: 14, k: 14, r: 10, soft: true });
     Sfx.hit();
   }
   placeDynamite() {
@@ -1172,7 +1173,7 @@ class Game {
     let n = 0;
     for (const [ox, oy] of offs) { const tx = d.tx + ox, ty = d.ty + oy; if (this.tileAt(tx, ty) === T_WALL) { L.tiles[ty * L.cols + tx] = T_EMPTY; this.burn[ty * L.cols + tx] = 0; n++; } }
     if (n) this.addScore(n * SCORE.wallTile, cx, cy - 12);
-    this.explosions.push({ x: cx, y: cy, t: 26, r: 34 });
+    this.explosions.push({ x: cx, y: cy, t: 26, k: 26, r: 34 });
     for (const e of this.entities) {
       if (!e.alive || !this.onScreen(e) || !(ENEMY[e.type] || e.type === 'lantern')) continue;
       const ex = e.x + e.w / 2, ey = e.y + e.h / 2;
@@ -1212,7 +1213,7 @@ class Game {
   kill(cause) {
     if (this.state !== 'playing') return;
     this.state = 'dying'; this.timer = 75; this.deathCause = cause; this.player.beam = null;
-    this.explosions.push({ x: this.player.x + 5, y: this.player.y + 7, t: 30, r: 18, soft: true });
+    this.explosions.push({ x: this.player.x + 5, y: this.player.y + 7, t: 30, k: 30, r: 18, soft: true });
     Sfx.die();
   }
   afterDeath() {
@@ -1244,10 +1245,16 @@ class Game {
   /* ---- render ---- */
   render() {
     const ctx = this.ctx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = '#0F1923'; ctx.fillRect(0, 0, VW, CH);
     if (this.state === 'idle' || !this.level) return;
     const L = this.level, ox = this.sx * VW, oy = this.sy * VH, f = this.frame;
-    ctx.save(); ctx.translate(-ox, -oy);
+    ctx.save();
+    try { this.renderWorld(ctx, L, ox, oy, f); } finally { ctx.restore(); }
+    this.renderOverlays(ctx, L, ox, oy, f);
+  }
+  renderWorld(ctx, L, ox, oy, f) {
+    ctx.translate(-ox, -oy);
     ctx.fillStyle = '#0b1220'; ctx.fillRect(ox, oy, VW, VH);
     // tiles
     const tx0 = this.sx * SW, ty0 = this.sy * SH;
@@ -1302,15 +1309,16 @@ class Game {
       ctx.fillStyle = 'rgba(248,113,113,0.45)'; ctx.fillRect(p.beam.x, p.beam.y, p.beam.w, 3);
     }
     for (const x of this.explosions) {
-      const k = x.soft ? 14 : 26, pr = (1 - x.t / k) * x.r;
+      const k = x.k || 26, pr = Math.max(0, (1 - x.t / k) * x.r);
       ctx.beginPath(); ctx.arc(x.x, x.y, pr, 0, Math.PI * 2); ctx.fillStyle = x.soft ? 'rgba(253,224,71,' + (x.t / k) * 0.8 + ')' : 'rgba(249,115,22,' + (x.t / k) * 0.9 + ')'; ctx.fill();
       if (!x.soft) { ctx.beginPath(); ctx.arc(x.x, x.y, pr * 0.55, 0, Math.PI * 2); ctx.fillStyle = 'rgba(254,240,138,' + (x.t / k) + ')'; ctx.fill(); }
     }
     ctx.font = '7px "Press Start 2P", monospace'; ctx.textAlign = 'center';
     for (const pp of this.popups) { ctx.fillStyle = '#0F1923'; ctx.fillText(pp.text, Math.round(pp.x) + 1, Math.round(pp.y) + 1); ctx.fillStyle = '#fde047'; ctx.fillText(pp.text, Math.round(pp.x), Math.round(pp.y)); }
     ctx.textAlign = 'left';
-    ctx.restore();
-
+  }
+  renderOverlays(ctx, L, ox, oy, f) {
+    const p = this.player, tx0 = this.sx * SW, ty0 = this.sy * SH;
     // darkness
     if (this.dark[this.screenKey()]) {
       const o = this.octx; o.globalCompositeOperation = 'source-over'; o.clearRect(0, 0, VW, VH);
