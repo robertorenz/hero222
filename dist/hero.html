@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H.E.R.O. Revamped</title>
+<meta name="description" content="A faithful remake of the 1984 cavern-rescue classic with fixed, memorisable caverns and a built-in level editor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* H.E.R.O. Revamped — dark mine-shaft theme. Single deliberate palette (no purple). */
+:root {
+  --bg: #0F1923;
+  --bg-2: #0b1220;
+  --panel: #1B2A4A;
+  --panel-2: #16233d;
+  --border: #2a3d63;
+  --accent: #0891B2;
+  --accent-2: #06B6D4;
+  --accent-soft: rgba(8, 145, 178, 0.18);
+  --warn: #D97706;
+  --danger: #DC2626;
+  --ok: #059669;
+  --text: #E2E8F0;
+  --text-2: #94A3B8;
+  --text-3: #64748b;
+  --display: "Press Start 2P", "Courier New", monospace;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+body { min-height: 100vh; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+main { flex: 1; padding-inline: 20px; padding-block: 20px; max-width: 1280px; width: 100%; margin: 0 auto; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; cursor: pointer; }
+kbd { font-family: var(--mono); font-size: 0.78em; background: var(--panel); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; color: var(--text); }
+.muted { color: var(--text-2); }
+.small { font-size: 0.85rem; }
+.ok { color: #34d399; font-weight: 600; }
+.warn { color: #fbbf24; font-weight: 600; }
+
+/* top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-inline: 20px; padding-block: 12px; background: var(--bg-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand-mark { font-family: var(--display); font-size: 1rem; color: var(--accent-2); letter-spacing: 1px; }
+.brand-sub { font-size: 0.8rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.14em; }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; }
+.nav-btn, .nav-btn-plain { background: transparent; border: 1px solid transparent; color: var(--text-2); padding: 6px 12px; border-radius: 6px; }
+.nav-btn:hover, .nav-btn-plain:hover { color: var(--text); background: var(--panel); }
+.nav-btn.active { color: var(--accent-2); border-color: var(--border); background: var(--panel); }
+.nav-btn:focus-visible, .nav-btn-plain:focus-visible, .btn:focus-visible, .tool:focus-visible, .level-card:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+/* buttons */
+.btn { border-radius: 6px; padding: 9px 16px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-weight: 500; transition: background .12s, border-color .12s, transform .06s; }
+.btn:hover { background: var(--panel-2); border-color: var(--accent); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn-danger { background: transparent; border-color: var(--danger); color: #fca5a5; }
+.btn-danger:hover { background: rgba(220, 38, 38, 0.15); }
+.btn-ghost { background: transparent; }
+.btn-lg { padding: 12px 22px; font-size: 1.02rem; }
+.btn-sm { padding: 5px 10px; font-size: 0.85rem; }
+.btn-col { display: flex; flex-direction: column; gap: 8px; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* menu */
+.hero-panel { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr); gap: 28px; background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border: 1px solid var(--border); border-radius: 10px; padding-inline: 32px; padding-block: 32px; position: relative; overflow: hidden; }
+.hero-panel::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 15px, rgba(255,255,255,0.015) 15px 16px), repeating-linear-gradient(0deg, transparent 0 15px, rgba(255,255,255,0.015) 15px 16px); pointer-events: none; }
+.hero-copy { position: relative; display: flex; flex-direction: column; gap: 18px; max-width: 62ch; }
+.eyebrow { font-family: var(--display); font-size: 0.6rem; color: var(--accent-2); letter-spacing: 0.08em; text-transform: uppercase; }
+.hero-copy h1 { font-family: var(--display); font-size: clamp(1.1rem, 2.6vw, 1.9rem); line-height: 1.55; color: #fff; }
+.lead { font-size: 1.05rem; color: var(--text); }
+.cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-side { position: relative; display: flex; flex-direction: column; gap: 16px; }
+.stat { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding-inline: 18px; padding-block: 14px; display: flex; flex-direction: column; gap: 6px; }
+.stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-2); }
+.stat-value { font-family: var(--display); font-size: 1.4rem; color: #fde047; font-variant-numeric: tabular-nums; }
+.side-block { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding-inline: 18px; padding-block: 14px; display: flex; flex-direction: column; gap: 10px; }
+.side-block h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-2); }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 20px; }
+.legend-item { display: flex; align-items: center; gap: 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding-inline: 12px; padding-block: 10px; }
+.legend-item div { display: flex; flex-direction: column; line-height: 1.25; }
+.legend-item b { font-size: 0.9rem; }
+.legend-item span:last-child { font-size: 0.78rem; color: var(--text-2); }
+.sw { width: 26px; height: 26px; border-radius: 4px; flex: none; border: 1px solid rgba(255,255,255,0.08); }
+.sw-rock { background: #2b2118; }
+.sw-wall { background: repeating-linear-gradient(0deg, #b08a5a 0 5px, #6b4f2f 5px 7px); }
+.sw-lava { background: linear-gradient(135deg, #b91c1c 40%, #f97316 60%, #fbbf24); }
+.sw-water { background: linear-gradient(180deg, #38bdf8 0 3px, #1e40af 3px); }
+.sw-power { background: linear-gradient(90deg, var(--accent) 60%, var(--panel) 60%); }
+.sw-tnt { background: linear-gradient(90deg, #dc2626 30%, #fbbf24 30% 40%, #dc2626 40%); }
+
+/* game */
+.view-game { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.game-wrap { width: 100%; display: flex; justify-content: center; }
+#game { image-rendering: pixelated; image-rendering: crisp-edges; background: #0F1923; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 0 0 4px var(--bg-2), 0 20px 60px rgba(0,0,0,0.5); max-width: 100%; }
+.controls-hint { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: var(--text-2); font-size: 0.85rem; }
+.controls-hint kbd { margin-right: 4px; }
+.touch { display: none; width: 100%; justify-content: space-between; gap: 12px; }
+.touch-group { display: flex; gap: 8px; }
+.touch button { width: 64px; height: 56px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-family: var(--display); font-size: 0.6rem; user-select: none; -webkit-user-select: none; touch-action: none; }
+.touch button.down { background: var(--accent); border-color: var(--accent); }
+@media (pointer: coarse) { .touch { display: flex; } .controls-hint { display: none; } }
+
+/* editor */
+.editor-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.editor-side { display: flex; flex-direction: column; gap: 12px; }
+.panel { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding-inline: 14px; padding-block: 12px; display: flex; flex-direction: column; gap: 10px; }
+.panel h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-2); }
+.panel.hint ul { margin: 0; padding-left: 18px; font-size: 0.82rem; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--text-2); flex: 1; }
+.field input, .field select, .modal textarea, .form-row select { font: inherit; font-size: 0.95rem; color: var(--text); background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; width: 100%; }
+.field input:focus, .field select:focus, .modal textarea:focus, .form-row select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field.check { flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 8px; }
+.field.check input { width: auto; }
+.field-row { display: flex; gap: 10px; }
+.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.tool { display: flex; align-items: center; gap: 8px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; color: var(--text); font-size: 0.85rem; text-align: left; }
+.tool canvas { width: 24px; height: 24px; image-rendering: pixelated; border-radius: 3px; flex: none; }
+.tool span { flex: 1; }
+.tool kbd { font-size: 0.65rem; padding: 0 4px; }
+.tool:hover { border-color: var(--accent); }
+.tool.active { border-color: var(--accent-2); background: var(--accent-soft); }
+.editor-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.editor-scroll { overflow: auto; max-height: calc(100vh - 190px); background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+#editor-canvas { image-rendering: pixelated; display: block; cursor: crosshair; }
+.editor-status { font-family: var(--mono); font-size: 0.82rem; color: var(--text-2); min-height: 1.4em; }
+
+/* modals */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(5, 10, 18, 0.72); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; opacity: 0; transition: opacity .16s; }
+.modal-backdrop.open { opacity: 1; }
+.modal { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; width: min(100%, 460px); max-height: calc(100vh - 32px); display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,0.6); transform: translateY(8px); transition: transform .16s; }
+.modal-backdrop.open .modal { transform: none; }
+.modal-wide { width: min(100%, 760px); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding-inline: 20px; padding-block: 14px; border-bottom: 1px solid var(--border); }
+.modal-head h2 { font-size: 1.05rem; font-weight: 600; }
+.modal-x { background: transparent; border: 0; color: var(--text-2); font-size: 1.5rem; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.modal-x:hover { color: var(--text); background: var(--panel); }
+.modal-body { padding-inline: 20px; padding-block: 16px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.modal-body ul { margin: 0; padding-left: 20px; }
+.modal-body h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-2); margin-top: 6px; }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding-inline: 20px; padding-block: 14px; border-top: 1px solid var(--border); }
+.modal textarea { font-family: var(--mono); font-size: 0.8rem; white-space: pre; resize: vertical; }
+.modal textarea.bad { border-color: var(--danger); }
+.tally { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.tally td { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.tally td.num { text-align: right; font-family: var(--mono); color: #fde047; }
+.tally tr.total td { border-bottom: 0; font-weight: 600; padding-top: 10px; }
+.tally tr.total td.num { color: #fff; font-size: 1.1rem; }
+.keys { border-collapse: collapse; }
+.keys td { padding: 5px 10px 5px 0; vertical-align: top; }
+.help-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.help-cols ul { display: flex; flex-direction: column; gap: 6px; font-size: 0.92rem; }
+.level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.level-card { display: flex; flex-direction: column; gap: 3px; text-align: left; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding-inline: 14px; padding-block: 12px; color: var(--text); }
+.level-card:hover:not(:disabled) { border-color: var(--accent); }
+.level-card.locked { opacity: 0.5; cursor: not-allowed; }
+.lv-num { font-family: var(--display); font-size: 0.7rem; color: var(--accent-2); }
+.lv-name { font-weight: 600; }
+.lv-meta, .lv-best { font-size: 0.78rem; color: var(--text-2); }
+.lv-best { color: #fde047; }
+.load-list { display: flex; flex-direction: column; gap: 6px; }
+.load-row { display: flex; gap: 8px; align-items: center; }
+.load-row .btn:first-child { flex: 1; text-align: left; }
+.form-row { display: flex; gap: 12px; }
+.form-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--text-2); flex: 1; }
+
+.foot { padding-inline: 20px; padding-block: 14px; text-align: center; color: var(--text-3); font-size: 0.8rem; border-top: 1px solid var(--border); }
+
+@media (max-width: 900px) {
+  .hero-panel { grid-template-columns: 1fr; padding-inline: 20px; padding-block: 22px; }
+  .editor-layout { grid-template-columns: 1fr; }
+  .editor-scroll { max-height: 60vh; }
+  .help-cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  main { padding-inline: 16px; }
+  .topbar { padding-inline: 16px; }
+  .btn-lg { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop, .modal, .btn { transition: none; }
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">H.E.R.O.</span><span class="brand-sub">Revamped</span></div>
+    <nav class="nav">
+      <button type="button" class="nav-btn" data-view="menu">Menu</button>
+      <button type="button" class="nav-btn" data-view="editor">Cavern editor</button>
+      <button type="button" class="nav-btn-plain" id="nav-help">Help</button>
+      <button type="button" class="nav-btn-plain" id="btn-sound">Sound: on</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= MENU ================= -->
+    <section id="view-menu" class="view view-menu">
+      <div class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Helicopter Emergency Rescue Operation</p>
+          <h1>Eight caverns.<br>One route each.<br>Learn them.</h1>
+          <p class="lead">Fly Roderick Hero down the mine shafts, blast through walls, dodge the wildlife, and bring every trapped miner home before the power pack runs dry. The caverns never change, so the map in your head is your best equipment.</p>
+          <div class="cta-row">
+            <button type="button" class="btn btn-primary btn-lg" id="btn-start">Start from cavern 1</button>
+            <button type="button" class="btn btn-ghost btn-lg" id="btn-continue">Continue</button>
+            <button type="button" class="btn btn-ghost btn-lg" id="btn-select">Select cavern</button>
+          </div>
+          <p class="muted" id="progress-note">No caverns explored yet</p>
+        </div>
+        <aside class="hero-side">
+          <div class="stat">
+            <span class="stat-label">High score</span>
+            <span class="stat-value" id="hs">000000</span>
+          </div>
+          <div class="side-block">
+            <h3>Your caverns</h3>
+            <p class="muted" id="custom-count">No custom caverns yet</p>
+            <div class="btn-col">
+              <button type="button" class="btn btn-ghost" id="btn-custom" disabled>Play custom caverns</button>
+              <button type="button" class="btn btn-ghost nav-btn" data-view="editor">Open the cavern editor</button>
+              <button type="button" class="btn btn-ghost" id="btn-help">How to play</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="sw sw-rock"></span><div><b>Rock</b><span>Indestructible</span></div></div>
+        <div class="legend-item"><span class="sw sw-wall"></span><div><b>Wall</b><span>Dynamite or laser</span></div></div>
+        <div class="legend-item"><span class="sw sw-lava"></span><div><b>Lava</b><span>Deadly</span></div></div>
+        <div class="legend-item"><span class="sw sw-water"></span><div><b>Water</b><span>Deadly, rafts float</span></div></div>
+        <div class="legend-item"><span class="sw sw-power"></span><div><b>Power</b><span>Drains every second</span></div></div>
+        <div class="legend-item"><span class="sw sw-tnt"></span><div><b>Dynamite</b><span>6 sticks per life</span></div></div>
+      </div>
+    </section>
+
+    <!-- ================= GAME ================= -->
+    <section id="view-game" class="view view-game" hidden>
+      <div id="game-wrap" class="game-wrap">
+        <canvas id="game" width="320" height="216" aria-label="Game screen"></canvas>
+      </div>
+      <div class="controls-hint">
+        <span><kbd>←</kbd><kbd>→</kbd> move</span><span><kbd>↑</kbd> fly</span><span><kbd>Space</kbd> laser</span><span><kbd>↓</kbd> dynamite</span><span><kbd>P</kbd> pause</span><span><kbd>Esc</kbd> menu</span>
+      </div>
+      <div id="touch" class="touch">
+        <div class="touch-group">
+          <button type="button" data-key="left" aria-label="Left">◀</button>
+          <button type="button" data-key="right" aria-label="Right">▶</button>
+        </div>
+        <div class="touch-group">
+          <button type="button" data-key="dyn" aria-label="Dynamite">TNT</button>
+          <button type="button" data-key="fire" aria-label="Laser">LASER</button>
+          <button type="button" data-key="up" aria-label="Fly">FLY</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EDITOR ================= -->
+    <section id="view-editor" class="view view-editor" hidden>
+      <div class="editor-layout">
+        <aside class="editor-side">
+          <div class="panel">
+            <h3>Cavern</h3>
+            <label class="field">Name<input type="text" id="ed-name" maxlength="40" autocomplete="off"></label>
+            <label class="field">Route tip (shown on pause)<input type="text" id="ed-tip" maxlength="120" autocomplete="off"></label>
+            <div class="field-row">
+              <label class="field">Power (s)<input type="number" id="ed-power" min="10" max="600" step="5"></label>
+              <label class="field">Dynamite<input type="number" id="ed-dyn" min="0" max="12"></label>
+            </div>
+            <div class="field-row">
+              <label class="field">Screens wide<select id="ed-sw"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+              <label class="field">Screens tall<select id="ed-sh"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+            </div>
+            <div class="field-row">
+              <label class="field">Zoom<select id="ed-zoom"><option value="8">Small</option><option value="12" selected>Medium</option><option value="16">Large</option><option value="24">Huge</option></select></label>
+              <label class="field check"><input type="checkbox" id="ed-rect"> Rectangle drag</label>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Tools</h3>
+            <div id="editor-tools" class="tools"></div>
+            <p class="muted small" id="editor-tool-hint"></p>
+          </div>
+          <div class="panel">
+            <h3>Actions</h3>
+            <div class="btn-grid">
+              <button type="button" class="btn btn-primary" id="ed-test">Test play</button>
+              <button type="button" class="btn btn-ghost" id="ed-validate">Check</button>
+              <button type="button" class="btn btn-ghost" id="ed-save">Save</button>
+              <button type="button" class="btn btn-ghost" id="ed-load">Open</button>
+              <button type="button" class="btn btn-ghost" id="ed-new">New</button>
+              <button type="button" class="btn btn-ghost" id="ed-undo">Undo</button>
+              <button type="button" class="btn btn-ghost" id="ed-redo">Redo</button>
+              <button type="button" class="btn btn-ghost" id="ed-export">Export</button>
+              <button type="button" class="btn btn-ghost" id="ed-import">Import</button>
+              <button type="button" class="btn btn-ghost" id="ed-fill-rock">Fill rock</button>
+              <button type="button" class="btn btn-ghost" id="ed-clear">Clear</button>
+              <button type="button" class="btn btn-ghost" id="ed-back">Main menu</button>
+            </div>
+          </div>
+          <div class="panel hint">
+            <h3>Design notes</h3>
+            <ul>
+              <li>Each screen is 20 × 12 tiles. Cyan lines mark screen edges; the view flips when the hero crosses one.</li>
+              <li>The hero respawns where they entered the screen, so keep entry points clear of lava.</li>
+              <li>Dynamite must be dropped while standing. Give each wall a floor beside it.</li>
+              <li>A blast clears the dynamite tile, two tiles in each direction, and the diagonals.</li>
+              <li>Saved caverns live in this browser. Use Export to share them.</li>
+            </ul>
+          </div>
+        </aside>
+        <div class="editor-main">
+          <div class="editor-scroll"><canvas id="editor-canvas"></canvas></div>
+          <div class="editor-status" id="editor-status"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot">A tribute to the 1984 Activision classic by John Van Ryzin. Built with plain HTML5 canvas — no plugins, nothing to install.</footer>
+</div>
+<div id="modal-root"></div>
+<script>
+/* ============================================================
+   H.E.R.O. Revamped - Built-in caverns
+   ------------------------------------------------------------
+   Every cavern is a fixed grid of screens (20 x 12 tiles each).
+   The map is a list of text rows; one character per tile.
+
+     #  rock (indestructible)        .  open air
+     W  wall (dynamite / laser)      L  lava wall (deadly)
+     ~  water (deadly)
+     P  player start                 M  trapped miner (goal)
+     b  bat        s  spider         m  moth        n  snake
+     l  lantern    r  raft (place on the row above water)
+
+   Because the layouts never change, players can learn the route
+   through each cavern by heart - just like the 1984 original.
+   ============================================================ */
+const HERO_LEVELS = [
+{
+  name: "Entrance Shaft", power: 60, dynamite: 6, sw: 1, sh: 2,
+  tip: "Drop down the shaft, then blast through the wall to reach the miner.",
+  map: [
+    "####################",
+    "#..................#",
+    "#..P...............#",
+    "#####.......########",
+    "########....########",
+    "########....########",
+    "####.........#######",
+    "###....b......######",
+    "###...........######",
+    "###########.....####",
+    "############...#####",
+    "############...#####",
+    "############...#####",
+    "#######.......######",
+    "#####.........######",
+    "#####.........######",
+    "#####WWWWWWWWW######",
+    "#####.........######",
+    "###...........######",
+    "###..........l######",
+    "###.M.........######",
+    "####################",
+    "####################",
+    "####################",
+  ]
+},
+{
+  name: "Twin Shafts", power: 75, dynamite: 6, sw: 1, sh: 3,
+  tip: "One shaft ends in lava. Remember which one.",
+  map: [
+    "####################",
+    "#.......P..........#",
+    "#..................#",
+    "###......####......#",
+    "###......####......#",
+    "###..b...####..s...#",
+    "###......####......#",
+    "###......####......#",
+    "###......####......#",
+    "###...#######......#",
+    "###...#######......#",
+    "###...#######......#",
+    "###...#######......#",
+    "###...#######......#",
+    "###...#######......#",
+    "###...####...m.....#",
+    "###...####.........#",
+    "###...###########..#",
+    "###...###########..#",
+    "###...###########..#",
+    "###LLL###########..#",
+    "#################..#",
+    "#################..#",
+    "#################..#",
+    "#################..#",
+    "#######............#",
+    "#######....s.......#",
+    "#######............#",
+    "########WW.........#",
+    "#####...WW.........#",
+    "###.....WW##########",
+    "###.M...WW##########",
+    "####################",
+    "####################",
+    "####################",
+    "####################",
+  ]
+},
+{
+  name: "The Crossing", power: 80, dynamite: 6, sw: 2, sh: 3,
+  tip: "Blast the wall on the ledge and fly west over the water. Don't go deeper.",
+  map: [
+    "########################################",
+    "#..P....................################",
+    "#.......................################",
+    "######......#######.....################",
+    "######......#######.....################",
+    "######..b...#######..s..################",
+    "######......#######.....################",
+    "######......#######.....################",
+    "######......#######.....################",
+    "######................m.################",
+    "######..................################",
+    "####################....################",
+    "####################....################",
+    "####################....################",
+    "####################....################",
+    "####################....################",
+    "####################....################",
+    "#..................W....################",
+    "#.M................W....################",
+    "####~~~~~~~~~~~~~~~W....################",
+    "######################..################",
+    "######################..################",
+    "######################..################",
+    "######################..################",
+    "######################..################",
+    "##################......################",
+    "##################......################",
+    "##################......################",
+    "##################LLLLLL################",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+  ]
+},
+{
+  name: "Lava Gallery", power: 90, dynamite: 6, sw: 2, sh: 4,
+  tip: "Weave between the lava pillars, hugging the right side on the way in.",
+  map: [
+    "########################################",
+    "#.P...........##########################",
+    "#.............##########################",
+    "#######L.....L##########################",
+    "#######L.....L##########################",
+    "#######L..s..L##########################",
+    "#######L.....L##########################",
+    "#######L.....L##########################",
+    "#######.......##########################",
+    "#####...........########################",
+    "#####...........########################",
+    "#####...........########################",
+    "#####...........########################",
+    "###.............########################",
+    "###.............########################",
+    "###.............WW......m..........m...#",
+    "###l.....n......WW.....................#",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "##################################....##",
+    "####################.L.....L.....L....##",
+    "####################.L.....L.....L....##",
+    "####################.L.....L.....L....##",
+    "####################.L..L..L..L..L....##",
+    "####################....L.....L.......##",
+    "#.......................L.....L.......##",
+    "#.......................L.....L.......##",
+    "#.....##############LLLLLLLLLLLLLLLLLL##",
+    "#.....##################################",
+    "#.....##################################",
+    "#.....##################################",
+    "#.....##################################",
+    "#..............b........################",
+    "#.......................################",
+    "#########.......########################",
+    "#########.......########################",
+    "#####WWWW.......########################",
+    "#####WWWW.......########################",
+    "#.M..WWWW..n....########################",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+  ]
+},
+{
+  name: "Deep Water", power: 100, dynamite: 6, sw: 2, sh: 4,
+  tip: "The left shaft is a trap. Ride the raft or fly the flooded tunnel west.",
+  map: [
+    "########################################",
+    "#..P...................................#",
+    "#......................................#",
+    "##########.......##########.......######",
+    "##########.......##########.......######",
+    "##########...s...##########...b...######",
+    "##########.......##########.......######",
+    "##########.......##########.......######",
+    "##########.......##########.......######",
+    "##########LLLLLLL##########.......######",
+    "###########################.......######",
+    "###########################.......######",
+    "###########################.......######",
+    "#......................................#",
+    "#...................r..................#",
+    "#...~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~####",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...####################################",
+    "#...........................############",
+    "#........m..................############",
+    "#.........................l.############",
+    "#############...............############",
+    "#############...............############",
+    "#############.......LLLL....############",
+    "#############.......LLLL....############",
+    "#############...n...LLLL....############",
+    "#########################...############",
+    "#########################...############",
+    "#########################...############",
+    "#########################...############",
+    "#####################...........########",
+    "#####################...........########",
+    "#####################...b.......########",
+    "#####################WWW........########",
+    "#####################WWW........########",
+    "#################....WWW........########",
+    "#################.M..WWW........########",
+    "########################################",
+    "########################################",
+    "########################################",
+    "########################################",
+  ]
+},
+{
+  name: "Spider Nest", power: 100, dynamite: 6, sw: 3, sh: 3,
+  tip: "Take the left shaft. Time your run under the spiders and over the snakes.",
+  map: [
+    "############################################################",
+    "#......................P...................................#",
+    "#..........................................................#",
+    "#####.....##############################......##############",
+    "#####.....##############################......##############",
+    "#####..b..##############################...s..##############",
+    "#####.....##############################......##############",
+    "#####.....##############################LLLLLL##############",
+    "#####.....##################################################",
+    "#####.....##################################################",
+    "#####.....##################################################",
+    "#####.....##################################################",
+    "#####.....##################################################",
+    "#..............s......s......s......s......................#",
+    "#..........................................................#",
+    "#..........................................................#",
+    "#..........................................................#",
+    "#..n.......n.......n.......n.......n.......................#",
+    "#####################################################....###",
+    "#####################################################....###",
+    "#####################################################....###",
+    "#####################################################....###",
+    "#####################################################....###",
+    "#####################################################....###",
+    "#####################################################....###",
+    "########################################.................###",
+    "########################################...........m.....###",
+    "########################################.................###",
+    "#########################WWW........................########",
+    "#########################WWW........................########",
+    "####################.....WWW........................########",
+    "####################.M...WWW........................########",
+    "############################################################",
+    "############################################################",
+    "############################################################",
+    "############################################################",
+  ]
+},
+{
+  name: "The Descent", power: 110, dynamite: 6, sw: 2, sh: 5,
+  tip: "Blast the wall floor, then the wall on the ledge. The long shaft ends in lava.",
+  map: [
+    "########################################",
+    "#..P.......#############################",
+    "#..........#############################",
+    "#######....#############################",
+    "#######....#############################",
+    "#######..s.#############################",
+    "#######....#############################",
+    "#######....#############################",
+    "#######....#############################",
+    "#######..............b.........#########",
+    "#######........................#########",
+    "###########################....#########",
+    "###########################....#########",
+    "###########################....#########",
+    "###########################....#########",
+    "#############..................#########",
+    "#############..........m.......#########",
+    "#############WWWW#######################",
+    "#############....#######################",
+    "#############....#######################",
+    "#############....#######################",
+    "##########.......#######################",
+    "##########.......#######################",
+    "##########.......#######################",
+    "##########.......#######################",
+    "#.................######################",
+    "#..l..............######################",
+    "#.................######################",
+    "#..n..............######################",
+    "#####..........#########################",
+    "#####..........#########################",
+    "#####....L.....#########################",
+    "#####....L.....#########################",
+    "#####....L.....#########################",
+    "#####....L.....#########################",
+    "#####....L.....#########################",
+    "#####LLLLL.....#########################",
+    "##########.....#########################",
+    "##########.....#########################",
+    "##########.....W.......................#",
+    "##########.....W.......b...............#",
+    "##########.....W.......................#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..#######################....#",
+    "##########..###########................#",
+    "##########..###########................#",
+    "##########..###########.....m..........#",
+    "##########..###########WWW.............#",
+    "##########..###########WWW.............#",
+    "##########..#....M.....WWW.............#",
+    "##########..#..........WWW.............#",
+    "##########LL############################",
+    "########################################",
+    "########################################",
+    "########################################",
+  ]
+},
+{
+  name: "Magma Core", power: 120, dynamite: 6, sw: 3, sh: 4,
+  tip: "Far right shaft, blast west, then thread the magma pillars up and down.",
+  map: [
+    "############################################################",
+    "#............................P.............................#",
+    "#..........................................................#",
+    "#####......#################.......#################.......#",
+    "#####......#################.......#################.......#",
+    "#####..b...#################...s...#################...m...#",
+    "#####......#################.......#################.......#",
+    "#####......#################LLLLLLL#################.......#",
+    "#####......#########################################.......#",
+    "#####......#########################################.......#",
+    "#####......#########################################.......#",
+    "#####......#########################################.......#",
+    "#####......#########################################.......#",
+    "#####..............#################...................s...#",
+    "#####..............#################.......................#",
+    "#..................#....WWW...........n....................#",
+    "#LLLLLLLLLLLLLLLLLL#....WWW#################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "####################....####################################",
+    "#....L.........L.........L.........L...#####################",
+    "#....L.........L.........L.........L.m.#####################",
+    "#....L....L....L....L....L....L....L...#####################",
+    "#.........L.........L.........L........#####################",
+    "#.........L.........L.........L........#####################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#..#########################################################",
+    "#.........................##################################",
+    "#....s.........l..........##################################",
+    "#.........................##################################",
+    "#########WWW..............##################################",
+    "#########WWW..............##################################",
+    "#########WWW..b...........##################################",
+    "#..M.....WWW..............##################################",
+    "#........WWW..............##################################",
+    "############################################################",
+    "############################################################",
+    "############################################################",
+  ]
+},
+];
+if (typeof module !== 'undefined') module.exports = { HERO_LEVELS };
+
+/* ============================================================
+   H.E.R.O. Revamped - game engine
+   Canvas 2D, fixed 60 Hz step, screen-flip caverns.
+   ============================================================ */
+const HERO = (() => {
+'use strict';
+
+const TILE = 16, SW = 20, SH = 12, VW = SW * TILE, VH = SH * TILE, HUD_H = 24, CH = VH + HUD_H;
+const T_EMPTY = 0, T_ROCK = 1, T_WALL = 2, T_LAVA = 3, T_WATER = 4;
+const CHAR_TILE = { '.': T_EMPTY, '#': T_ROCK, 'W': T_WALL, 'L': T_LAVA, '~': T_WATER };
+const ENT_CHAR = { P: 'start', M: 'miner', b: 'bat', s: 'spider', m: 'moth', n: 'snake', l: 'lantern', r: 'raft' };
+const ENT_NAMES = { start: 'Start', miner: 'Miner', bat: 'Bat', spider: 'Spider', moth: 'Moth', snake: 'Snake', lantern: 'Lantern', raft: 'Raft' };
+const ENEMY = { bat: 1, spider: 1, moth: 1, snake: 1 };
+const SCORE = { enemy: 50, lantern: 25, wallTile: 25, rescue: 1000, perPower: 10, perDynamite: 50, extraLife: 20000 };
+const FUSE = 90, LASER_LEN = 30, LASER_BURN = 2.5, START_LIVES = 4;
+
+/* ---------- level parsing / validation ---------- */
+function parseLevel(def) {
+  const sw = def.sw || 1, sh = def.sh || 1, cols = sw * SW, rows = sh * SH;
+  const tiles = new Uint8Array(cols * rows);
+  const entities = [];
+  let start = { tx: 1, ty: 1 };
+  for (let y = 0; y < rows; y++) {
+    const row = def.map[y] || '';
+    for (let x = 0; x < cols; x++) {
+      const c = row[x] === undefined ? '#' : row[x];
+      if (c in CHAR_TILE) tiles[y * cols + x] = CHAR_TILE[c];
+      else if (c in ENT_CHAR) { tiles[y * cols + x] = T_EMPTY; if (c === 'P') start = { tx: x, ty: y }; else entities.push({ type: ENT_CHAR[c], tx: x, ty: y }); }
+      else tiles[y * cols + x] = T_ROCK;
+    }
+  }
+  return { name: def.name || 'Untitled', tip: def.tip || '', power: +def.power || 90, dynamite: +def.dynamite || 6, sw, sh, cols, rows, tiles, entities, start };
+}
+
+function validateLevel(def) {
+  const errors = [], warnings = [];
+  const cols = (def.sw || 1) * SW, rows = (def.sh || 1) * SH;
+  if (!def.name || !def.name.trim()) warnings.push('The cavern has no name.');
+  if (!(def.power > 0)) errors.push('Power must be greater than zero.');
+  let P = null, M = null, enemies = 0;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const c = (def.map[y] || '')[x] || '#';
+    if (c === 'P') { if (P) errors.push('More than one start position.'); P = [x, y]; }
+    if (c === 'M') { if (M) errors.push('More than one miner.'); M = [x, y]; }
+    if ('bsmn'.includes(c)) enemies++;
+  }
+  if (!P) errors.push('No start position (P).');
+  if (!M) errors.push('No miner (M).');
+  if (P && M) {
+    const seen = new Uint8Array(cols * rows); seen[P[1] * cols + P[0]] = 1;
+    const q = [P]; let found = false;
+    while (q.length) {
+      const [x, y] = q.shift();
+      if (x === M[0] && y === M[1]) { found = true; break; }
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+        const c = (def.map[ny] || '')[nx] || '#';
+        if (c === '#' || c === 'L' || c === '~') continue;
+        const i = ny * cols + nx; if (seen[i]) continue; seen[i] = 1; q.push([nx, ny]);
+      }
+    }
+    if (!found) errors.push('The miner cannot be reached from the start (walls count as passable, lava and water do not).');
+  }
+  if (enemies === 0) warnings.push('No enemies placed. The cavern will be quiet.');
+  return { ok: errors.length === 0, errors, warnings };
+}
+
+/* ---------- pixel art ---------- */
+const PAL = {
+  k: '#101418', w: '#f8fafc', r: '#dc2626', o: '#f59e0b', y: '#fde047', b: '#2563eb', c: '#22d3ee',
+  s: '#f2c9a0', n: '#8b5a2b', g: '#94a3b8', e: '#16a34a', d: '#475569', t: '#d6c08a', a: '#d97706', h: '#1e3a8a'
+};
+const HERO_BODY = [
+  '.....kk.....',
+  '...yyyyyy...',
+  '..yyyyyyyy..',
+  '..yyyyyyrr..',
+  '...ssssss...',
+  '...skssks...',
+  '...ssssss...',
+  '..hhhhhhhh..',
+  '.hhhhhhhhhh.',
+  '.hh.hhhh.hh.',
+  '.ss.hhhh.ss.',
+  '....hhhh....',
+];
+const HERO_LEGS = [
+  ['....hh.hh...', '....hh.hh...', '...kkk.kkk..'],
+  ['...hh...hh..', '..hh.....hh.', '.kkk.....kkk'],
+  ['....hh.hh...', '....hh.hh...', '...kkk.kkk..'],
+];
+const HERO_PROP = ['gggggggggggg', '..gggggggg..', '.....gg.....', '..gggggggg..'];
+const SPR = {
+  miner: [
+    '...oooooo...', '..oooooooo..', '..oooooooo..', '...ssssss...', '...skssks...', '...ssssss...',
+    '..nnnnnnnn.s', '.nnnnnnnnn.s', '.nn.nnnn.nns', '.ss.nnnn.ss.', '....nnnn....', '....nnnn....',
+    '....nn.nn...', '....nn.nn...', '...kkk.kkk..', '............'],
+  miner2: [
+    '...oooooo..s', '..oooooooo.s', '..oooooooo.s', '...ssssss..n', '...skssks..n', '...ssssss.nn',
+    '..nnnnnnnnn.', '.nnnnnnnnnn.', '.nn.nnnn....', '.ss.nnnn....', '....nnnn....', '....nnnn....',
+    '....nn.nn...', '....nn.nn...', '...kkk.kkk..', '............'],
+  bat0: ['k..............k', 'kk............kk', 'kkk....kk....kkk', '.kkkk.kkkk.kkkk.', '..kkkkkrrkkkkk..', '....kkkkkkkk....', '......k..k......', '................'],
+  bat1: ['................', '................', '......k..k......', '...kkkkkkkkkk...', 'kkkkkkkrrkkkkkkk', 'kkk...kkkk...kkk', 'k......kk......k', '................'],
+  spider: ['..k......k..', '...k....k...', 'k...kkkk...k', '.kkkkkkkkkk.', '..kkkkkkkk..', '..kkrkkrkk..', '.kkkkkkkkkk.', 'k..kkkkkk..k', '...k....k...', '..k......k..'],
+  moth0: ['ttt......ttt', 'tttt....tttt', '.tttt..tttt.', '..ttkkkktt..', '..ttkkkktt..', '.tttt..tttt.', 'tttt....tttt', 'ttt......ttt'],
+  moth1: ['............', '............', 'tt........tt', 'tttt.kk.tttt', 'tttt.kk.tttt', 'tt........tt', '............', '............'],
+  snake0: ['..........ee....', '.........eeee...', '........eerkee..', '........eeee.rr.', '..eeeeeeeee.....', '.eeeeeeeeeee....', 'ee...eeeeeeeee..', 'e.......eeeeeee.', '..........eeee..', '................'],
+  snake1: ['..........ee....', '.........eeee...', '........eerkee..', '........eeee....', '..eeeeeeeee.....', '.eeeeeeeeeee....', 'ee...eeeeeeeee..', 'e.......eeeeeee.', '..........eeee..', '................'],
+  lantern: ['...kk...', '..kkkk..', '.k....k.', '.kyyyyk.', '.kyyyyk.', '.kyooyk.', '.kyooyk.', '.kyyyyk.', '.k....k.', '..kkkk..', '...kk...', '........'],
+  raft: ['nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', 'nkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkn', 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', 'nkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkn', 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', '.n............................n.'],
+  dynamite: ['...o..', '..o...', '..k...', '.rrrr.', '.rrrr.', '.rwrr.', '.rrrr.', '.rrrr.'],
+  life: ['.gggggg.', '...kk...', '..yyyy..', '..yyyy..', '..hhhh..', '.hhhhhh.', '..h..h..', '..k..k..'],
+};
+
+let sprites = null, tilesImg = null;
+function makeSprite(rows) {
+  const h = rows.length, w = rows[0].length;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const ch = rows[j][i]; if (ch !== '.' && PAL[ch]) { x.fillStyle = PAL[ch]; x.fillRect(i, j, 1, 1); } }
+  return c;
+}
+function flip(img) {
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+  const x = c.getContext('2d'); x.translate(img.width, 0); x.scale(-1, 1); x.drawImage(img, 0, 0); return c;
+}
+function rnd(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function makeTile(fn) { const c = document.createElement('canvas'); c.width = TILE; c.height = TILE; fn(c.getContext('2d')); return c; }
+
+function initAssets() {
+  if (sprites) return;
+  sprites = {};
+  sprites.hero = []; // [propFrame][legFrame] facing right
+  for (let p = 0; p < 4; p++) { sprites.hero[p] = []; for (let l = 0; l < 3; l++) sprites.hero[p][l] = makeSprite([HERO_PROP[p], ...HERO_BODY, ...HERO_LEGS[l]]); }
+  sprites.heroL = sprites.hero.map(row => row.map(flip));
+  for (const k in SPR) sprites[k] = makeSprite(SPR[k]);
+  sprites.batL = [flip(sprites.bat0), flip(sprites.bat1)];
+  sprites.snakeL = [flip(sprites.snake0), flip(sprites.snake1)];
+
+  tilesImg = { rock: [], wall: null, lava: [], water: [] };
+  for (let v = 0; v < 4; v++) {
+    const r = rnd(1234 + v * 77);
+    tilesImg.rock.push(makeTile(g => {
+      g.fillStyle = '#2b2118'; g.fillRect(0, 0, 16, 16);
+      for (let i = 0; i < 26; i++) { g.fillStyle = r() < 0.5 ? '#3a2c20' : '#241a12'; g.fillRect((r() * 16) | 0, (r() * 16) | 0, 1 + (r() * 2 | 0), 1); }
+      for (let i = 0; i < 4; i++) { g.fillStyle = '#4a3a2b'; g.fillRect((r() * 16) | 0, (r() * 16) | 0, 1, 1); }
+    }));
+  }
+  tilesImg.wall = makeTile(g => {
+    g.fillStyle = '#6b4f2f'; g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#b08a5a';
+    g.fillRect(0, 0, 7, 3); g.fillRect(8, 0, 8, 3); g.fillRect(0, 4, 3, 3); g.fillRect(4, 4, 12, 3);
+    g.fillRect(0, 8, 7, 3); g.fillRect(8, 8, 8, 3); g.fillRect(0, 12, 3, 3); g.fillRect(4, 12, 12, 3);
+    g.fillStyle = '#c9a374'; g.fillRect(0, 0, 7, 1); g.fillRect(8, 0, 8, 1); g.fillRect(4, 4, 12, 1); g.fillRect(0, 8, 7, 1); g.fillRect(8, 8, 8, 1); g.fillRect(4, 12, 12, 1);
+  });
+  for (let f = 0; f < 2; f++) {
+    const r = rnd(99 + f);
+    tilesImg.lava.push(makeTile(g => {
+      g.fillStyle = '#b91c1c'; g.fillRect(0, 0, 16, 16);
+      for (let i = 0; i < 9; i++) { g.fillStyle = r() < 0.5 ? '#f97316' : '#fbbf24'; const w = 2 + (r() * 4 | 0); g.fillRect((r() * 14) | 0, (r() * 14) | 0, w, 2); }
+      for (let i = 0; i < 4; i++) { g.fillStyle = '#7f1d1d'; g.fillRect((r() * 16) | 0, (r() * 16) | 0, 2, 1); }
+    }));
+    tilesImg.water.push(makeTile(g => {
+      g.fillStyle = '#1e40af'; g.fillRect(0, 0, 16, 16);
+      g.fillStyle = '#38bdf8';
+      for (let i = 0; i < 3; i++) { const y = (i * 5 + f * 2) % 16; g.fillRect(0, y, 4, 1); g.fillRect(8, y, 4, 1); }
+      g.fillStyle = '#60a5fa'; g.fillRect(0, 0, 16, 1);
+    }));
+  }
+}
+
+/* ---------- sound ---------- */
+const Sfx = {
+  ctx: null, muted: false, hum: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.ctx = null; } }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  beep(f, dur, type, vol, f2) {
+    if (this.muted || !this.ctx) return;
+    const t = this.ctx.currentTime, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol || 0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(dur, vol) {
+    if (this.muted || !this.ctx) return;
+    const sr = this.ctx.sampleRate, buf = this.ctx.createBuffer(1, sr * dur, sr), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const s = this.ctx.createBufferSource(), g = this.ctx.createGain(), t = this.ctx.currentTime;
+    s.buffer = buf; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(g); g.connect(this.ctx.destination); s.start(t);
+  },
+  laser() { this.beep(1200, 0.05, 'sawtooth', 0.04, 400); },
+  place() { this.beep(260, 0.08, 'square', 0.06); },
+  explode() { this.noise(0.45, 0.25); this.beep(90, 0.4, 'triangle', 0.15, 30); },
+  wall() { this.beep(220, 0.12, 'triangle', 0.07, 90); },
+  hit() { this.beep(700, 0.08, 'square', 0.06, 200); },
+  die() { this.humStop(); this.beep(440, 0.6, 'square', 0.08, 55); },
+  rescue() { [523, 659, 784, 1046, 784, 1046].forEach((f, i) => setTimeout(() => this.beep(f, 0.14, 'square', 0.07), i * 110)); },
+  life() { [784, 988, 1175].forEach((f, i) => setTimeout(() => this.beep(f, 0.1, 'triangle', 0.08), i * 90)); },
+  humStart() {
+    if (this.hum || this.muted || !this.ctx) return;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(75, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.08);
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); this.hum = { o, g };
+  },
+  humStop() {
+    if (!this.hum) return;
+    const t = this.ctx.currentTime; this.hum.g.gain.setTargetAtTime(0.0001, t, 0.05); this.hum.o.stop(t + 0.25); this.hum = null;
+  },
+  setMuted(m) { this.muted = m; if (m) this.humStop(); }
+};
+
+/* ---------- helpers ---------- */
+const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+const KEYMAP = {
+  ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up',
+  Space: 'fire', KeyZ: 'fire', KeyJ: 'fire', ControlLeft: 'fire', ControlRight: 'fire',
+  ArrowDown: 'dyn', KeyS: 'dyn', KeyX: 'dyn', KeyK: 'dyn', ShiftLeft: 'dyn',
+  KeyP: 'pause', Escape: 'esc', Enter: 'enter'
+};
+
+/* ---------- the game ---------- */
+class Game {
+  constructor(canvas, cb) {
+    initAssets();
+    this.canvas = canvas; this.cb = cb || {};
+    canvas.width = VW; canvas.height = CH;
+    this.ctx = canvas.getContext('2d'); this.ctx.imageSmoothingEnabled = false;
+    this.overlay = document.createElement('canvas'); this.overlay.width = VW; this.overlay.height = VH;
+    this.octx = this.overlay.getContext('2d');
+    this.keys = {}; this.pressed = {};
+    this.state = 'idle'; this.frame = 0; this.acc = 0; this.last = performance.now();
+    this.active = false;
+    window.addEventListener('keydown', e => this.onKey(e, true));
+    window.addEventListener('keyup', e => this.onKey(e, false));
+    window.addEventListener('blur', () => { this.keys = {}; Sfx.humStop(); });
+    requestAnimationFrame(t => this.loop(t));
+  }
+  onKey(e, down) {
+    const k = KEYMAP[e.code]; if (!k || !this.active) return;
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    e.preventDefault();
+    if (down) Sfx.ensure();
+    if (down && !this.keys[k]) this.pressed[k] = true;
+    this.keys[k] = down;
+  }
+  setActive(a) { this.active = a; this.keys = {}; if (!a) Sfx.humStop(); }
+  // virtual buttons (touch)
+  setKey(k, down) { if (down && !this.keys[k]) this.pressed[k] = true; this.keys[k] = down; if (down) Sfx.ensure(); }
+
+  start(levelDefs, index, opts) {
+    this.levelDefs = levelDefs; this.levelIndex = index || 0; this.opts = opts || {};
+    this.score = 0; this.lives = START_LIVES; this.nextLife = SCORE.extraLife; this.rescued = 0;
+    this.active = true; Sfx.ensure();
+    this.loadLevel();
+  }
+  nextLevel() { this.levelIndex++; this.loadLevel(); }
+  loadLevel() {
+    const L = this.level = parseLevel(this.levelDefs[this.levelIndex]);
+    this.burn = new Float32Array(L.tiles.length);
+    this.dark = {};
+    this.entities = L.entities.map(e => this.makeEntity(e, L));
+    this.player = { x: L.start.tx * TILE + 3, y: L.start.ty * TILE + 2, w: 10, h: 14, vy: 0, facing: 1, walk: 0, flying: false, onGround: false, beam: null, laser: false };
+    this.dynamites = []; this.explosions = []; this.popups = [];
+    this.power = L.power; this.dynamite = L.dynamite;
+    this.sx = -1; this.sy = -1; this.invuln = 0; this.timer = 0;
+    this.state = 'playing'; this.deathCause = '';
+    this.banner = { text: 'CAVERN ' + (this.levelIndex + 1), sub: L.name.toUpperCase(), t: 150 };
+    this.updateScreen(true);
+  }
+  makeEntity(d, L) {
+    const e = { type: d.type, tx: d.tx, ty: d.ty, alive: true, t: 0, sx: (d.tx / SW) | 0, sy: (d.ty / SH) | 0, x: d.tx * TILE, y: d.ty * TILE, w: 12, h: 12, vx: 0 };
+    switch (d.type) {
+      case 'bat': e.w = 16; e.h = 8; e.y0 = e.y + 4; e.y = e.y0; e.vx = -0.8; break;
+      case 'spider': {
+        e.w = 12; e.h = 10; e.x = d.tx * TILE + 2; e.anchorY = d.ty * TILE;
+        let drop = 0; for (let k = 1; k <= 3; k++) { if (this.solidTile(L, d.tx, d.ty + k)) break; drop = k; }
+        e.range = drop * TILE + 6;
+        let top = d.ty; for (let k = 1; k <= 12; k++) { if (d.ty - k < 0 || this.solidTile(L, d.tx, d.ty - k)) { top = d.ty - k + 1; break; } }
+        e.threadY = top * TILE; e.t = (d.tx * 37) % 200; break;
+      }
+      case 'moth': e.w = 12; e.h = 8; e.x0 = e.x + 2; e.y0 = e.y + 4; e.t = (d.tx * 13) % 100; break;
+      case 'snake': e.w = 16; e.h = 10; e.y = d.ty * TILE + 6; break;
+      case 'lantern': e.w = 8; e.h = 12; e.x = d.tx * TILE + 4; e.y = d.ty * TILE + 2; break;
+      case 'miner': e.w = 12; e.h = 16; e.x = d.tx * TILE + 2; break;
+      case 'raft': {
+        e.w = 32; e.h = 6; e.y = d.ty * TILE + 12; e.vx = 0.5;
+        let lx = d.tx, rx = d.tx;
+        const water = (tx) => tx >= 0 && tx < L.cols && L.tiles[(d.ty + 1) * L.cols + tx] === T_WATER && !this.solidTile(L, tx, d.ty);
+        while (water(lx - 1)) lx--; while (water(rx + 1)) rx++;
+        e.minX = lx * TILE; e.maxX = Math.max(e.minX, (rx + 1) * TILE - 32); e.x = Math.min(Math.max(e.x - 8, e.minX), e.maxX); break;
+      }
+    }
+    e.x0 = e.x0 === undefined ? e.x : e.x0; e.sx0 = e.x; e.sy0 = e.y; e.t0 = e.t;
+    return e;
+  }
+  resetEntity(e) { e.x = e.sx0; e.y = e.sy0; e.t = e.t0; if (e.type === 'bat') e.vx = -0.8; if (e.type === 'raft') e.vx = 0.5; }
+  solidTile(L, tx, ty) { if (tx < 0 || ty < 0 || tx >= L.cols || ty >= L.rows) return true; const t = L.tiles[ty * L.cols + tx]; return t === T_ROCK || t === T_WALL; }
+  tileAt(tx, ty) { const L = this.level; if (tx < 0 || ty < 0 || tx >= L.cols || ty >= L.rows) return T_ROCK; return L.tiles[ty * L.cols + tx]; }
+  solidAt(px, py) { return this.solidTile(this.level, (px / TILE) | 0, (py / TILE) | 0); }
+  boxSolid(x, y, w, h) { return this.solidAt(x, y) || this.solidAt(x + w - 1, y) || this.solidAt(x, y + h - 1) || this.solidAt(x + w - 1, y + h - 1); }
+  hazardAt(px, py) { const t = this.tileAt((px / TILE) | 0, (py / TILE) | 0); return t === T_LAVA || t === T_WATER; }
+  boxHazard(x, y, w, h) { return this.hazardAt(x, y) || this.hazardAt(x + w - 1, y) || this.hazardAt(x, y + h - 1) || this.hazardAt(x + w - 1, y + h - 1) || this.hazardAt(x + w / 2, y + h / 2); }
+  onScreen(e) { return e.sx === this.sx && e.sy === this.sy; }
+  screenKey() { return this.sx + ',' + this.sy; }
+
+  /* ---- loop ---- */
+  loop(t) {
+    requestAnimationFrame(tt => this.loop(tt));
+    if (!this.active) { this.last = t; return; }
+    let dt = t - this.last; this.last = t; if (dt > 250) dt = 250;
+    this.acc += dt;
+    while (this.acc >= 1000 / 60) { this.update(); this.acc -= 1000 / 60; }
+    this.render();
+  }
+  update() {
+    this.frame++;
+    if (this.state === 'idle') return;
+    if (this.pressed.esc) { this.pressed = {}; if (this.state === 'playing' || this.state === 'paused') { this.state = 'paused'; Sfx.humStop(); if (this.cb.onPauseMenu) this.cb.onPauseMenu(); } return; }
+    if (this.pressed.pause || (this.pressed.enter && this.state === 'paused')) { if (this.state === 'playing') { this.state = 'paused'; Sfx.humStop(); } else if (this.state === 'paused') this.state = 'playing'; }
+    if (this.banner) { if (--this.banner.t <= 0) this.banner = null; }
+    switch (this.state) {
+      case 'playing': this.updatePlaying(); break;
+      case 'dying': this.updateEffects(); if (--this.timer <= 0) this.afterDeath(); break;
+      case 'rescued': this.updateEffects(); this.entities.forEach(e => e.t++); if (--this.timer <= 0) this.finishLevel(); break;
+    }
+    this.pressed = {};
+  }
+  resume() { if (this.state === 'paused') this.state = 'playing'; this.keys = {}; }
+
+  updatePlaying() {
+    const p = this.player;
+    if (this.invuln > 0) this.invuln--;
+    this.power -= 1 / 60;
+    if (this.power <= 0) { this.power = 0; this.kill('power'); return; }
+
+    // ground / raft
+    p.onGround = this.boxSolid(p.x, p.y + 1, p.w, p.h);
+    let raftDx = 0;
+    for (const e of this.entities) {
+      if (e.type !== 'raft' || !this.onScreen(e)) continue;
+      const feet = p.y + p.h;
+      if (p.x + p.w > e.x && p.x < e.x + e.w && feet >= e.y - 3 && feet <= e.y + 5 && p.vy >= 0) { p.onGround = true; p.y = e.y - p.h; raftDx = e.vx; }
+    }
+    if (raftDx) this.moveX(p, raftDx);
+
+    let dx = 0;
+    if (this.keys.left) { dx = -1; p.facing = -1; } else if (this.keys.right) { dx = 1; p.facing = 1; }
+    if (dx) { this.moveX(p, dx * (p.onGround ? 1.25 : 1.5)); p.walk++; } else p.walk = 0;
+
+    if (this.keys.up) { p.vy -= 0.22; if (p.vy < -1.9) p.vy = -1.9; p.flying = true; Sfx.humStart(); }
+    else { p.vy += 0.14; if (p.vy > 2.6) p.vy = 2.6; p.flying = false; Sfx.humStop(); }
+    if (p.onGround && p.vy > 0) p.vy = 0;
+    this.moveY(p, p.vy);
+
+    if (this.boxHazard(p.x + 2, p.y + 2, p.w - 4, p.h - 4)) { this.kill('hazard'); return; }
+    this.updateScreen(false);
+
+    p.laser = !!this.keys.fire; p.beam = null;
+    if (p.laser) this.doLaser();
+    if (this.pressed.dyn && p.onGround && this.dynamite > 0 && this.dynamites.length === 0) this.placeDynamite();
+
+    this.updateEntities();
+
+    for (const d of this.dynamites) { d.t--; if (d.t <= 0) this.explode(d); }
+    this.dynamites = this.dynamites.filter(d => d.t > 0);
+    this.updateEffects();
+    if (this.state !== 'playing') return;
+
+    const pb = { x: p.x + 1, y: p.y + 1, w: p.w - 2, h: p.h - 2 };
+    for (const e of this.entities) {
+      if (!e.alive || !this.onScreen(e)) continue;
+      if (ENEMY[e.type] && this.invuln === 0 && overlap(pb, { x: e.x + 1, y: e.y + 1, w: e.w - 2, h: e.h - 2 })) { this.kill('enemy'); return; }
+      if (e.type === 'miner' && overlap(pb, e)) { this.rescue(); return; }
+    }
+  }
+  moveX(p, d) {
+    const n = Math.ceil(Math.abs(d)); if (!n) return; const s = d / n;
+    for (let i = 0; i < n; i++) { const nx = p.x + s; if (this.boxSolid(nx, p.y, p.w, p.h)) break; p.x = nx; }
+  }
+  moveY(p, d) {
+    const n = Math.ceil(Math.abs(d)); if (!n) return; const s = d / n;
+    for (let i = 0; i < n; i++) { const ny = p.y + s; if (this.boxSolid(p.x, ny, p.w, p.h)) { p.vy = 0; break; } p.y = ny; }
+  }
+  updateScreen(force) {
+    const p = this.player, L = this.level;
+    let sx = ((p.x + p.w / 2) / VW) | 0, sy = ((p.y + p.h / 2) / VH) | 0;
+    sx = Math.max(0, Math.min(L.sw - 1, sx)); sy = Math.max(0, Math.min(L.sh - 1, sy));
+    if (!force && sx === this.sx && sy === this.sy) return;
+    this.sx = sx; this.sy = sy;
+    this.checkpoint = { x: p.x, y: p.y, facing: p.facing };
+    for (const e of this.entities) if (this.onScreen(e) && e.alive) this.resetEntity(e);
+    this.player.beam = null;
+  }
+  doLaser() {
+    const p = this.player, L = this.level, dir = p.facing;
+    const y = p.y + 4, h = 3, startX = dir > 0 ? p.x + p.w : p.x;
+    let endX = startX + dir * LASER_LEN, hit = -1;
+    const ty = ((y + 1) / TILE) | 0;
+    for (let i = 0; i <= LASER_LEN; i += 2) {
+      const px = startX + dir * i, tx = (px / TILE) | 0, t = this.tileAt(tx, ty);
+      if (t === T_ROCK || t === T_WALL) { endX = dir > 0 ? tx * TILE : (tx + 1) * TILE; if (t === T_WALL) hit = ty * L.cols + tx; break; }
+    }
+    const beam = { x: Math.min(startX, endX), y, w: Math.abs(endX - startX), h };
+    p.beam = beam;
+    if (this.frame % 7 === 0) Sfx.laser();
+    if (hit >= 0) {
+      this.burn[hit] += 1 / 60;
+      if (this.burn[hit] >= LASER_BURN) { L.tiles[hit] = T_EMPTY; this.burn[hit] = 0; this.addScore(SCORE.wallTile, (hit % L.cols) * TILE + 8, ((hit / L.cols) | 0) * TILE + 8); Sfx.wall(); }
+    }
+    for (const e of this.entities) {
+      if (!e.alive || !this.onScreen(e)) continue;
+      if ((ENEMY[e.type] || e.type === 'lantern') && overlap(beam, e)) this.killEntity(e);
+    }
+  }
+  killEntity(e) {
+    e.alive = false;
+    if (e.type === 'lantern') { this.dark[e.sx + ',' + e.sy] = true; this.addScore(SCORE.lantern, e.x + 4, e.y); }
+    else this.addScore(SCORE.enemy, e.x + e.w / 2, e.y);
+    this.explosions.push({ x: e.x + e.w / 2, y: e.y + e.h / 2, t: 14, r: 10, soft: true });
+    Sfx.hit();
+  }
+  placeDynamite() {
+    const p = this.player, tx = ((p.x + p.w / 2) / TILE) | 0, ty = ((p.y + p.h - 1) / TILE) | 0;
+    this.dynamites.push({ tx, ty, x: tx * TILE + 5, y: ty * TILE + 8, t: FUSE });
+    this.dynamite--; Sfx.place();
+  }
+  explode(d) {
+    const L = this.level, cx = d.tx * TILE + 8, cy = d.ty * TILE + 8;
+    const offs = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1], [2, 0], [-2, 0], [0, 2], [0, -2]];
+    let n = 0;
+    for (const [ox, oy] of offs) { const tx = d.tx + ox, ty = d.ty + oy; if (this.tileAt(tx, ty) === T_WALL) { L.tiles[ty * L.cols + tx] = T_EMPTY; this.burn[ty * L.cols + tx] = 0; n++; } }
+    if (n) this.addScore(n * SCORE.wallTile, cx, cy - 12);
+    this.explosions.push({ x: cx, y: cy, t: 26, r: 34 });
+    for (const e of this.entities) {
+      if (!e.alive || !this.onScreen(e) || !(ENEMY[e.type] || e.type === 'lantern')) continue;
+      const ex = e.x + e.w / 2, ey = e.y + e.h / 2;
+      if (Math.hypot(ex - cx, ey - cy) < 34) this.killEntity(e);
+    }
+    const p = this.player;
+    if (Math.hypot(p.x + p.w / 2 - cx, p.y + p.h / 2 - cy) < 30) this.kill('dynamite');
+    Sfx.explode();
+  }
+  updateEntities() {
+    for (const e of this.entities) {
+      if (!e.alive || !this.onScreen(e)) continue;
+      e.t++;
+      switch (e.type) {
+        case 'bat': {
+          const nx = e.x + e.vx, minX = this.sx * VW, maxX = (this.sx + 1) * VW - e.w;
+          if (nx < minX || nx > maxX || this.boxSolid(nx, e.y, e.w, e.h)) e.vx = -e.vx; else e.x = nx;
+          e.y = e.y0 + Math.sin(e.t * 0.07) * 5; break;
+        }
+        case 'spider': e.y = e.anchorY + (0.5 - 0.5 * Math.cos(e.t * 0.035)) * e.range; break;
+        case 'moth': e.x = e.x0 + Math.cos(e.t * 0.045) * 18; e.y = e.y0 + Math.sin(e.t * 0.1) * 9; break;
+        case 'raft': { e.x += e.vx; if (e.x <= e.minX) { e.x = e.minX; e.vx = Math.abs(e.vx); } else if (e.x >= e.maxX) { e.x = e.maxX; e.vx = -Math.abs(e.vx); } break; }
+      }
+    }
+  }
+  updateEffects() {
+    for (const x of this.explosions) x.t--;
+    this.explosions = this.explosions.filter(x => x.t > 0);
+    for (const pp of this.popups) { pp.t--; pp.y -= 0.35; }
+    this.popups = this.popups.filter(pp => pp.t > 0);
+  }
+  addScore(n, x, y) {
+    this.score += n;
+    if (x !== undefined) this.popups.push({ x, y, text: '' + n, t: 50 });
+    if (this.score >= this.nextLife) { this.nextLife += SCORE.extraLife; this.lives++; this.popups.push({ x: this.player.x, y: this.player.y - 10, text: 'EXTRA LIFE', t: 80 }); Sfx.life(); }
+  }
+  kill(cause) {
+    if (this.state !== 'playing') return;
+    this.state = 'dying'; this.timer = 75; this.deathCause = cause; this.player.beam = null;
+    this.explosions.push({ x: this.player.x + 5, y: this.player.y + 7, t: 30, r: 18, soft: true });
+    Sfx.die();
+  }
+  afterDeath() {
+    this.lives--;
+    if (this.lives < 0) { this.state = 'over'; if (this.cb.onGameOver) this.cb.onGameOver({ score: this.score, level: this.levelIndex, rescued: this.rescued }); return; }
+    const p = this.player, c = this.checkpoint;
+    p.x = c.x; p.y = c.y; p.facing = c.facing; p.vy = 0;
+    this.power = this.level.power; this.dynamite = this.level.dynamite;
+    this.dynamites = []; this.burn.fill(0); this.invuln = 70;
+    for (const e of this.entities) if (this.onScreen(e)) { e.alive = true; this.resetEntity(e); }
+    if (this.dark[this.screenKey()]) { delete this.dark[this.screenKey()]; }
+    this.state = 'playing';
+  }
+  rescue() {
+    this.state = 'rescued'; this.timer = 140; this.player.beam = null; Sfx.humStop();
+    this.bonusPower = Math.round(this.power) * SCORE.perPower; this.bonusDyn = this.dynamite * SCORE.perDynamite;
+    this.addScore(SCORE.rescue + this.bonusPower + this.bonusDyn);
+    this.rescued++;
+    Sfx.rescue();
+  }
+  finishLevel() {
+    this.state = 'between';
+    if (this.cb.onLevelComplete) this.cb.onLevelComplete({
+      levelIndex: this.levelIndex, name: this.level.name, score: this.score, rescue: SCORE.rescue, bonusPower: this.bonusPower, bonusDyn: this.bonusDyn,
+      hasNext: this.levelIndex + 1 < this.levelDefs.length, lives: this.lives
+    });
+  }
+
+  /* ---- render ---- */
+  render() {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#0F1923'; ctx.fillRect(0, 0, VW, CH);
+    if (this.state === 'idle' || !this.level) return;
+    const L = this.level, ox = this.sx * VW, oy = this.sy * VH, f = this.frame;
+    ctx.save(); ctx.translate(-ox, -oy);
+    ctx.fillStyle = '#0b1220'; ctx.fillRect(ox, oy, VW, VH);
+    // tiles
+    const tx0 = this.sx * SW, ty0 = this.sy * SH;
+    for (let ty = ty0; ty < ty0 + SH; ty++) for (let tx = tx0; tx < tx0 + SW; tx++) {
+      const t = L.tiles[ty * L.cols + tx], px = tx * TILE, py = ty * TILE;
+      if (t === T_EMPTY) continue;
+      if (t === T_ROCK) {
+        ctx.drawImage(tilesImg.rock[(tx * 7 + ty * 13) & 3], px, py);
+        ctx.fillStyle = '#5a4636';
+        if (!this.solidTile(L, tx, ty - 1) && ty > ty0) ctx.fillRect(px, py, TILE, 1);
+        if (!this.solidTile(L, tx - 1, ty) && tx > tx0) ctx.fillRect(px, py, 1, TILE);
+        ctx.fillStyle = '#1a120c';
+        if (!this.solidTile(L, tx, ty + 1) && ty < ty0 + SH - 1) ctx.fillRect(px, py + TILE - 1, TILE, 1);
+        if (!this.solidTile(L, tx + 1, ty) && tx < tx0 + SW - 1) ctx.fillRect(px + TILE - 1, py, 1, TILE);
+      } else if (t === T_WALL) {
+        ctx.drawImage(tilesImg.wall, px, py);
+        const b = this.burn[ty * L.cols + tx]; if (b > 0) { ctx.fillStyle = 'rgba(239,68,68,' + Math.min(0.8, b / LASER_BURN) + ')'; ctx.fillRect(px, py, TILE, TILE); }
+      } else if (t === T_LAVA) ctx.drawImage(tilesImg.lava[(f >> 4) & 1], px, py);
+      else if (t === T_WATER) ctx.drawImage(tilesImg.water[(f >> 4) & 1], px, py);
+    }
+    // entities
+    for (const e of this.entities) {
+      if (!e.alive || !this.onScreen(e)) continue;
+      const x = Math.round(e.x), y = Math.round(e.y);
+      switch (e.type) {
+        case 'bat': ctx.drawImage(e.vx < 0 ? sprites['bat' + ((e.t >> 3) & 1)] : sprites.batL[(e.t >> 3) & 1], x, y); break;
+        case 'spider': ctx.fillStyle = '#cbd5e1'; ctx.fillRect(x + 5, e.threadY, 1, y - e.threadY + 2); ctx.drawImage(sprites.spider, x, y); break;
+        case 'moth': ctx.drawImage(sprites['moth' + ((e.t >> 2) & 1)], x, y); break;
+        case 'snake': ctx.drawImage(sprites['snake' + ((e.t >> 4) & 1)], x, y); break;
+        case 'lantern': {
+          ctx.drawImage(sprites.lantern, x, y);
+          const g = ctx.createRadialGradient(x + 4, y + 6, 2, x + 4, y + 6, 26); g.addColorStop(0, 'rgba(253,224,71,0.28)'); g.addColorStop(1, 'rgba(253,224,71,0)');
+          ctx.fillStyle = g; ctx.fillRect(x - 24, y - 22, 56, 56); break;
+        }
+        case 'raft': ctx.drawImage(sprites.raft, x, y); break;
+        case 'miner': ctx.drawImage((e.t >> 4) & 1 ? sprites.miner2 : sprites.miner, x, y); break;
+      }
+    }
+    for (const d of this.dynamites) { if (((d.t >> 2) & 1) || d.t > 30) ctx.drawImage(sprites.dynamite, d.x, d.y); if (d.t <= 30 && (d.t >> 2) & 1) { ctx.fillStyle = '#fde047'; ctx.fillRect(d.x + 2, d.y - 1, 2, 2); } }
+    // player
+    const p = this.player;
+    if (this.state !== 'dying' || (f >> 2) & 1) {
+      if (!(this.invuln > 0 && (f >> 2) & 1)) {
+        const prop = p.flying ? (f >> 1) & 3 : (this.state === 'dying' ? (f >> 1) & 3 : 0);
+        const leg = p.onGround && p.walk ? ((p.walk >> 3) % 3) : (p.onGround ? 0 : 1);
+        const img = (p.facing > 0 ? sprites.hero : sprites.heroL)[prop][leg];
+        ctx.drawImage(img, Math.round(p.x) - 1, Math.round(p.y) - 2);
+      }
+    }
+    if (p.beam && this.state === 'playing') {
+      ctx.fillStyle = (f & 2) ? '#f87171' : '#fecaca'; ctx.fillRect(p.beam.x, p.beam.y + 1, p.beam.w, 1);
+      ctx.fillStyle = 'rgba(248,113,113,0.45)'; ctx.fillRect(p.beam.x, p.beam.y, p.beam.w, 3);
+    }
+    for (const x of this.explosions) {
+      const k = x.soft ? 14 : 26, pr = (1 - x.t / k) * x.r;
+      ctx.beginPath(); ctx.arc(x.x, x.y, pr, 0, Math.PI * 2); ctx.fillStyle = x.soft ? 'rgba(253,224,71,' + (x.t / k) * 0.8 + ')' : 'rgba(249,115,22,' + (x.t / k) * 0.9 + ')'; ctx.fill();
+      if (!x.soft) { ctx.beginPath(); ctx.arc(x.x, x.y, pr * 0.55, 0, Math.PI * 2); ctx.fillStyle = 'rgba(254,240,138,' + (x.t / k) + ')'; ctx.fill(); }
+    }
+    ctx.font = '7px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+    for (const pp of this.popups) { ctx.fillStyle = '#0F1923'; ctx.fillText(pp.text, Math.round(pp.x) + 1, Math.round(pp.y) + 1); ctx.fillStyle = '#fde047'; ctx.fillText(pp.text, Math.round(pp.x), Math.round(pp.y)); }
+    ctx.textAlign = 'left';
+    ctx.restore();
+
+    // darkness
+    if (this.dark[this.screenKey()]) {
+      const o = this.octx; o.globalCompositeOperation = 'source-over'; o.clearRect(0, 0, VW, VH);
+      o.fillStyle = 'rgba(0,0,0,0.94)'; o.fillRect(0, 0, VW, VH);
+      o.globalCompositeOperation = 'destination-out';
+      const px = p.x + p.w / 2 - ox, py = p.y + p.h / 2 - oy;
+      let g = o.createRadialGradient(px, py, 4, px, py, 44); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.6, 'rgba(0,0,0,0.6)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      o.fillStyle = g; o.fillRect(px - 44, py - 44, 88, 88);
+      for (let ty = ty0; ty < ty0 + SH; ty++) for (let tx = tx0; tx < tx0 + SW; tx++) if (L.tiles[ty * L.cols + tx] === T_LAVA) {
+        const lx = tx * TILE + 8 - ox, ly = ty * TILE + 8 - oy; g = o.createRadialGradient(lx, ly, 2, lx, ly, 18); g.addColorStop(0, 'rgba(0,0,0,0.7)'); g.addColorStop(1, 'rgba(0,0,0,0)'); o.fillStyle = g; o.fillRect(lx - 18, ly - 18, 36, 36);
+      }
+      for (const x of this.explosions) { g = o.createRadialGradient(x.x - ox, x.y - oy, 2, x.x - ox, x.y - oy, x.r + 10); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); o.fillStyle = g; o.fillRect(x.x - ox - 50, x.y - oy - 50, 100, 100); }
+      ctx.drawImage(this.overlay, 0, 0);
+    }
+    this.renderHud();
+    if (this.banner) {
+      const a = Math.min(1, this.banner.t / 30);
+      ctx.fillStyle = 'rgba(15,25,35,' + (0.85 * a) + ')'; ctx.fillRect(40, 70, 240, 44);
+      ctx.fillStyle = 'rgba(8,145,178,' + a + ')'; ctx.fillRect(40, 70, 240, 2);
+      ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(248,250,252,' + a + ')'; ctx.font = '10px "Press Start 2P", monospace'; ctx.fillText(this.banner.text, 160, 88);
+      ctx.fillStyle = 'rgba(34,211,238,' + a + ')'; ctx.font = '7px "Press Start 2P", monospace'; ctx.fillText(this.banner.sub, 160, 104); ctx.textAlign = 'left';
+    }
+    if (this.state === 'paused') {
+      ctx.fillStyle = 'rgba(15,25,35,0.7)'; ctx.fillRect(0, 0, VW, VH);
+      ctx.textAlign = 'center'; ctx.fillStyle = '#f8fafc'; ctx.font = '12px "Press Start 2P", monospace'; ctx.fillText('PAUSED', 160, 92);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '7px "Press Start 2P", monospace'; ctx.fillText('P TO RESUME', 160, 110); ctx.textAlign = 'left';
+    }
+    if (this.state === 'rescued') {
+      ctx.textAlign = 'center'; ctx.fillStyle = (f >> 3) & 1 ? '#fde047' : '#f8fafc'; ctx.font = '10px "Press Start 2P", monospace'; ctx.fillText('MINER RESCUED!', 160, 40); ctx.textAlign = 'left';
+    }
+    if (this.state === 'dying') {
+      const msg = { power: 'OUT OF POWER', hazard: 'TOO HOT / TOO WET', enemy: 'GOT YOU', dynamite: 'TOO CLOSE!' }[this.deathCause] || '';
+      ctx.textAlign = 'center'; ctx.fillStyle = '#f87171'; ctx.font = '8px "Press Start 2P", monospace'; ctx.fillText(msg, 160, 30); ctx.textAlign = 'left';
+    }
+  }
+  renderHud() {
+    const ctx = this.ctx, y = VH;
+    ctx.fillStyle = '#0F1923'; ctx.fillRect(0, y, VW, HUD_H);
+    ctx.fillStyle = '#1B2A4A'; ctx.fillRect(0, y, VW, 1);
+    ctx.font = '7px "Press Start 2P", monospace'; ctx.fillStyle = '#94a3b8';
+    ctx.fillText('SCORE', 4, y + 9); ctx.fillStyle = '#f8fafc'; ctx.fillText(String(this.score).padStart(6, '0'), 4, y + 19);
+    // power bar
+    const bx = 62, bw = 96, frac = Math.max(0, this.power / this.level.power);
+    ctx.fillStyle = '#94a3b8'; ctx.fillText('POWER', bx, y + 9);
+    ctx.fillStyle = '#1B2A4A'; ctx.fillRect(bx, y + 12, bw, 7);
+    const col = frac > 0.5 ? '#0891B2' : frac > 0.25 ? '#D97706' : (this.frame >> 3 & 1 ? '#DC2626' : '#7f1d1d');
+    ctx.fillStyle = col; ctx.fillRect(bx, y + 12, Math.round(bw * frac), 7);
+    ctx.fillStyle = '#f8fafc'; ctx.fillText(String(Math.ceil(this.power)), bx + bw + 4, y + 19);
+    // lives
+    ctx.fillStyle = '#94a3b8'; ctx.fillText('MEN', 196, y + 9);
+    for (let i = 0; i < Math.min(this.lives, 5); i++) ctx.drawImage(sprites.life, 196 + i * 9, y + 11);
+    if (this.lives > 5) { ctx.fillStyle = '#f8fafc'; ctx.fillText('+' + (this.lives - 5), 242, y + 19); }
+    // dynamite
+    ctx.fillStyle = '#94a3b8'; ctx.fillText('TNT', 258, y + 9);
+    for (let i = 0; i < this.dynamite; i++) ctx.drawImage(sprites.dynamite, 258 + i * 5, y + 11);
+    // level
+    ctx.fillStyle = '#22d3ee'; ctx.textAlign = 'right'; ctx.fillText('C' + (this.levelIndex + 1), VW - 3, y + 9);
+    ctx.fillStyle = '#94a3b8'; ctx.fillText(this.sx + ',' + this.sy, VW - 3, y + 19); ctx.textAlign = 'left';
+  }
+}
+
+return { Game, Sfx, parseLevel, validateLevel, initAssets, get sprites() { initAssets(); return sprites; }, get tiles() { initAssets(); return tilesImg; },
+  TILE, SW, SH, VW, VH, CH, ENT_CHAR, ENT_NAMES, CHAR_TILE, SCORE };
+})();
+
+/* ============================================================
+   H.E.R.O. Revamped - cavern editor
+   Paints the same text-map format the built-in caverns use.
+   ============================================================ */
+const Editor = (() => {
+'use strict';
+const SW = HERO.SW, SH = HERO.SH;
+const TOOLS = [
+  { c: '#', name: 'Rock', key: '1', hint: 'Solid. Cannot be destroyed.' },
+  { c: '.', name: 'Air', key: '2', hint: 'Open space (also the eraser).' },
+  { c: 'W', name: 'Wall', key: '3', hint: 'Destroyed by dynamite or a long laser burn.' },
+  { c: 'L', name: 'Lava', key: '4', hint: 'Deadly to touch. Glows in the dark.' },
+  { c: '~', name: 'Water', key: '5', hint: 'Deadly to touch. Rafts float on it.' },
+  { c: 'P', name: 'Start', key: '6', hint: 'Where the hero enters. One per cavern.' },
+  { c: 'M', name: 'Miner', key: '7', hint: 'The goal. One per cavern.' },
+  { c: 'b', name: 'Bat', key: '8', hint: 'Flies left and right across the screen.' },
+  { c: 's', name: 'Spider', key: '9', hint: 'Hangs from the ceiling, drops up to 3 tiles.' },
+  { c: 'm', name: 'Moth', key: '0', hint: 'Flutters around its spot.' },
+  { c: 'n', name: 'Snake', key: 'Q', hint: 'Sits on the floor. Place it on the tile above solid ground.' },
+  { c: 'l', name: 'Lantern', key: 'E', hint: 'Shoot it and the screen goes dark.' },
+  { c: 'r', name: 'Raft', key: 'R', hint: 'Place on the row above water. Drifts along the water.' },
+];
+let st = null, tool = '#', ts = 12, mouse = null, history = [], future = [], rectMode = false, rectStart = null, hover = null, dirty = false;
+let els = {}, cb = {};
+
+function blank(sw, sh) {
+  const cols = sw * SW, rows = sh * SH, g = [];
+  for (let y = 0; y < rows; y++) { const r = []; for (let x = 0; x < cols; x++) r.push(x === 0 || y === 0 || x === cols - 1 || y === rows - 1 ? '#' : '.'); g.push(r); }
+  return g;
+}
+function newLevel(sw, sh) {
+  st = { name: 'New Cavern', power: 90, dynamite: 6, sw: sw || 1, sh: sh || 2, grid: blank(sw || 1, sh || 2), tip: '' };
+  st.grid[2][2] = 'P'; st.grid[st.grid.length - 3][st.grid[0].length - 4] = 'M';
+  history = []; future = []; dirty = false; syncForm(); render();
+}
+function fromDef(def) {
+  const sw = def.sw || 1, sh = def.sh || 1, g = blank(sw, sh);
+  for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) { const c = (def.map[y] || '')[x]; g[y][x] = c === undefined ? '#' : c; }
+  st = { name: def.name || 'Untitled', power: def.power || 90, dynamite: def.dynamite || 6, sw, sh, grid: g, tip: def.tip || '' };
+  history = []; future = []; dirty = false; syncForm(); render();
+}
+function toDef() { return { name: st.name, power: +st.power, dynamite: +st.dynamite, sw: st.sw, sh: st.sh, tip: st.tip, map: st.grid.map(r => r.join('')) }; }
+function snapshot() { history.push(st.grid.map(r => r.slice())); if (history.length > 80) history.shift(); future = []; dirty = true; }
+function undo() { if (!history.length) return; future.push(st.grid.map(r => r.slice())); st.grid = history.pop(); render(); }
+function redo() { if (!future.length) return; history.push(st.grid.map(r => r.slice())); st.grid = future.pop(); render(); }
+function resize(sw, sh) {
+  snapshot();
+  const g = blank(sw, sh);
+  for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++) {
+    const inner = x > 0 && y > 0 && x < g[0].length - 1 && y < g.length - 1;
+    if (inner && st.grid[y] && st.grid[y][x] !== undefined) g[y][x] = st.grid[y][x];
+  }
+  st.sw = sw; st.sh = sh; st.grid = g; render();
+}
+function setCell(x, y, c) {
+  const g = st.grid; if (y < 0 || x < 0 || y >= g.length || x >= g[0].length) return;
+  if (c === 'P' || c === 'M') for (const row of g) for (let i = 0; i < row.length; i++) if (row[i] === c) row[i] = '.';
+  g[y][x] = c;
+}
+function paintRect(x0, y0, x1, y1, c) {
+  const ax = Math.min(x0, x1), bx = Math.max(x0, x1), ay = Math.min(y0, y1), by = Math.max(y0, y1);
+  if (c === 'P' || c === 'M') { setCell(x1, y1, c); return; }
+  for (let y = ay; y <= by; y++) for (let x = ax; x <= bx; x++) setCell(x, y, c);
+}
+function syncForm() {
+  els.name.value = st.name; els.power.value = st.power; els.dyn.value = st.dynamite; els.tip.value = st.tip;
+  els.sw.value = st.sw; els.sh.value = st.sh;
+}
+function cellFromEvent(e) {
+  const r = els.canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / ts), y = Math.floor((e.clientY - r.top) / ts);
+  if (x < 0 || y < 0 || x >= st.grid[0].length || y >= st.grid.length) return null;
+  return { x, y };
+}
+function render() {
+  const g = st.grid, cols = g[0].length, rows = g.length, c = els.canvas, ctx = c.getContext('2d');
+  c.width = cols * ts; c.height = rows * ts; ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, c.width, c.height);
+  const T = HERO.tiles, S = HERO.sprites;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const ch = g[y][x], px = x * ts, py = y * ts;
+    if (ch === '#') ctx.drawImage(T.rock[(x * 7 + y * 13) & 3], px, py, ts, ts);
+    else if (ch === 'W') ctx.drawImage(T.wall, px, py, ts, ts);
+    else if (ch === 'L') ctx.drawImage(T.lava[0], px, py, ts, ts);
+    else if (ch === '~') ctx.drawImage(T.water[0], px, py, ts, ts);
+  }
+  const k = ts / 16;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const ch = g[y][x], px = x * ts, py = y * ts;
+    if ('.#WL~'.includes(ch)) continue;
+    const spr = { P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[ch];
+    if (!spr) continue;
+    if (ch === 'r') ctx.drawImage(spr, px - 8 * k, py + 12 * k, 32 * k, 6 * k);
+    else ctx.drawImage(spr, px + (16 - spr.width) / 2 * k, py + (16 - spr.height) * k, spr.width * k, spr.height * k);
+    if (ch === 'P' || ch === 'M') { ctx.strokeStyle = ch === 'P' ? '#22d3ee' : '#fde047'; ctx.lineWidth = 1; ctx.strokeRect(px + 0.5, py + 0.5, ts - 1, ts - 1); }
+  }
+  // grid + screen boundaries
+  ctx.strokeStyle = 'rgba(148,163,184,0.10)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = 0; x <= cols; x++) { ctx.moveTo(x * ts + 0.5, 0); ctx.lineTo(x * ts + 0.5, rows * ts); }
+  for (let y = 0; y <= rows; y++) { ctx.moveTo(0, y * ts + 0.5); ctx.lineTo(cols * ts, y * ts + 0.5); }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(34,211,238,0.75)'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let x = 0; x <= st.sw; x++) { ctx.moveTo(x * SW * ts, 0); ctx.lineTo(x * SW * ts, rows * ts); }
+  for (let y = 0; y <= st.sh; y++) { ctx.moveTo(0, y * SH * ts); ctx.lineTo(cols * ts, y * SH * ts); }
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(34,211,238,0.9)'; ctx.font = '10px "IBM Plex Mono", monospace';
+  for (let y = 0; y < st.sh; y++) for (let x = 0; x < st.sw; x++) ctx.fillText('screen ' + x + ',' + y, x * SW * ts + 4, y * SH * ts + 12);
+  if (rectStart && hover) { ctx.strokeStyle = '#D97706'; ctx.lineWidth = 2; const ax = Math.min(rectStart.x, hover.x), ay = Math.min(rectStart.y, hover.y), bx = Math.max(rectStart.x, hover.x), by = Math.max(rectStart.y, hover.y); ctx.strokeRect(ax * ts + 1, ay * ts + 1, (bx - ax + 1) * ts - 2, (by - ay + 1) * ts - 2); }
+  else if (hover) { ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1; ctx.strokeRect(hover.x * ts + 0.5, hover.y * ts + 0.5, ts - 1, ts - 1); }
+  els.status.textContent = hover ? 'tile ' + hover.x + ',' + hover.y + '  ·  screen ' + Math.floor(hover.x / SW) + ',' + Math.floor(hover.y / SH) + '  ·  ' + (TOOLS.find(t => t.c === st.grid[hover.y][hover.x]) || { name: '?' }).name : 'Click or drag to paint. Right-click erases. Shift-drag fills a rectangle.';
+}
+function buildToolbar() {
+  els.tools.innerHTML = '';
+  const S = HERO.sprites, T = HERO.tiles;
+  for (const t of TOOLS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tool' + (t.c === tool ? ' active' : ''); b.dataset.c = t.c; b.title = t.hint + ' (' + t.key + ')';
+    const ic = document.createElement('canvas'); ic.width = 24; ic.height = 24; const x = ic.getContext('2d'); x.imageSmoothingEnabled = false;
+    x.fillStyle = '#0b1220'; x.fillRect(0, 0, 24, 24);
+    const img = { '#': T.rock[0], 'W': T.wall, 'L': T.lava[0], '~': T.water[0], P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[t.c];
+    if (img) { const k = Math.min(24 / img.width, 24 / img.height, 1.5); x.drawImage(img, (24 - img.width * k) / 2, (24 - img.height * k) / 2, img.width * k, img.height * k); }
+    b.appendChild(ic);
+    const s = document.createElement('span'); s.textContent = t.name; b.appendChild(s);
+    const kk = document.createElement('kbd'); kk.textContent = t.key; b.appendChild(kk);
+    b.addEventListener('click', () => setTool(t.c));
+    els.tools.appendChild(b);
+  }
+}
+function setTool(c) { tool = c; els.tools.querySelectorAll('.tool').forEach(b => b.classList.toggle('active', b.dataset.c === c)); const t = TOOLS.find(t => t.c === c); els.toolHint.textContent = t ? t.name + ' — ' + t.hint : ''; }
+
+function init(opts) {
+  cb = opts;
+  els = { canvas: document.getElementById('editor-canvas'), tools: document.getElementById('editor-tools'), toolHint: document.getElementById('editor-tool-hint'), status: document.getElementById('editor-status'),
+    name: document.getElementById('ed-name'), power: document.getElementById('ed-power'), dyn: document.getElementById('ed-dyn'), tip: document.getElementById('ed-tip'), sw: document.getElementById('ed-sw'), sh: document.getElementById('ed-sh'), zoom: document.getElementById('ed-zoom') };
+  buildToolbar(); setTool('#');
+  newLevel(1, 2);
+  const c = els.canvas;
+  c.addEventListener('contextmenu', e => e.preventDefault());
+  c.addEventListener('mousedown', e => {
+    const cell = cellFromEvent(e); if (!cell) return;
+    const ch = e.button === 2 ? '.' : tool;
+    if (e.shiftKey || rectMode) { rectStart = cell; mouse = { ch }; render(); return; }
+    snapshot(); mouse = { ch }; setCell(cell.x, cell.y, ch); render();
+  });
+  c.addEventListener('mousemove', e => {
+    const cell = cellFromEvent(e); hover = cell;
+    if (mouse && !rectStart && cell && !'PM'.includes(mouse.ch)) setCell(cell.x, cell.y, mouse.ch);
+    render();
+  });
+  c.addEventListener('mouseleave', () => { hover = null; render(); });
+  window.addEventListener('mouseup', e => {
+    if (rectStart && hover) { snapshot(); paintRect(rectStart.x, rectStart.y, hover.x, hover.y, mouse ? mouse.ch : tool); }
+    rectStart = null; mouse = null; render();
+  });
+  window.addEventListener('keydown', e => {
+    if (!cb.isActive || !cb.isActive()) return;
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); redo(); return; }
+    const t = TOOLS.find(t => t.key === e.key.toUpperCase()); if (t) setTool(t.c);
+  });
+  els.name.addEventListener('input', () => { st.name = els.name.value; dirty = true; });
+  els.tip.addEventListener('input', () => { st.tip = els.tip.value; dirty = true; });
+  els.power.addEventListener('change', () => { st.power = Math.max(10, Math.min(600, +els.power.value || 90)); els.power.value = st.power; dirty = true; });
+  els.dyn.addEventListener('change', () => { st.dynamite = Math.max(0, Math.min(12, +els.dyn.value || 0)); els.dyn.value = st.dynamite; dirty = true; });
+  els.sw.addEventListener('change', () => resize(+els.sw.value, st.sh));
+  els.sh.addEventListener('change', () => resize(st.sw, +els.sh.value));
+  els.zoom.addEventListener('change', () => { ts = +els.zoom.value; render(); });
+  document.getElementById('ed-rect').addEventListener('change', e => { rectMode = e.target.checked; });
+  document.getElementById('ed-undo').addEventListener('click', undo);
+  document.getElementById('ed-redo').addEventListener('click', redo);
+  document.getElementById('ed-fill-rock').addEventListener('click', () => { snapshot(); for (const r of st.grid) r.fill('#'); render(); });
+  document.getElementById('ed-clear').addEventListener('click', () => { snapshot(); st.grid = blank(st.sw, st.sh); render(); });
+}
+return {
+  init, newLevel, fromDef, toDef, render, undo, redo,
+  get dirty() { return dirty; }, set dirty(v) { dirty = v; },
+  get name() { return st ? st.name : ''; },
+  validate: () => HERO.validateLevel(toDef()),
+};
+})();
+
+/* ============================================================
+   H.E.R.O. Revamped - app shell: menus, modals, storage, wiring
+   ============================================================ */
+(() => {
+'use strict';
+const $ = s => document.querySelector(s), $ = s => Array.from(document.querySelectorAll(s));
+const Store = {
+  get(k, d) { try { const v = localStorage.getItem('hero222.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('hero222.' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+};
+
+/* ---------- modal system (no alerts, ever) ---------- */
+const modalRoot = $('#modal-root');
+let modalStack = [];
+function showModal({ title, html, body, buttons, closable = true, wide = false, onOpen }) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div'); wrap.className = 'modal-backdrop';
+    const box = document.createElement('div'); box.className = 'modal' + (wide ? ' modal-wide' : ''); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    const h = document.createElement('div'); h.className = 'modal-head';
+    const t = document.createElement('h2'); t.textContent = title; h.appendChild(t);
+    if (closable) { const x = document.createElement('button'); x.className = 'modal-x'; x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.innerHTML = '&times;'; x.addEventListener('click', () => close(null)); h.appendChild(x); }
+    box.appendChild(h);
+    const b = document.createElement('div'); b.className = 'modal-body'; if (html) b.innerHTML = html; if (body) b.appendChild(body); box.appendChild(b);
+    const f = document.createElement('div'); f.className = 'modal-foot';
+    (buttons || [{ label: 'OK', primary: true, value: true }]).forEach(btn => {
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'btn ' + (btn.primary ? 'btn-primary' : btn.danger ? 'btn-danger' : 'btn-ghost'); el.textContent = btn.label;
+      el.addEventListener('click', () => { if (btn.onClick && btn.onClick(box) === false) return; close(btn.value === undefined ? btn.label : btn.value); }); f.appendChild(el);
+    });
+    box.appendChild(f); wrap.appendChild(box); modalRoot.appendChild(wrap);
+    const onKey = e => { if (e.key === 'Escape' && closable) { e.stopPropagation(); close(null); } };
+    wrap.addEventListener('keydown', onKey);
+    requestAnimationFrame(() => { wrap.classList.add('open'); const first = box.querySelector('input,textarea,select,.btn-primary,button'); if (first) first.focus(); });
+    const entry = { wrap };
+    modalStack.push(entry);
+    function close(v) { modalStack = modalStack.filter(m => m !== entry); wrap.classList.remove('open'); setTimeout(() => wrap.remove(), 160); resolve(v); }
+    if (onOpen) onOpen(box, close);
+  });
+}
+const modalOpen = () => modalStack.length > 0;
+
+/* ---------- views ---------- */
+const views = { menu: $('#view-menu'), game: $('#view-game'), editor: $('#view-editor') };
+let current = 'menu';
+function showView(name) {
+  current = name;
+  for (const k in views) views[k].hidden = k !== name;
+  $('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  game.setActive(name === 'game');
+  if (name === 'game') fitCanvas();
+  if (name === 'editor') Editor.render();
+}
+
+/* ---------- game wiring ---------- */
+const canvas = $('#game');
+let session = { levels: HERO_LEVELS, mode: 'campaign', startIndex: 0 };
+const game = new HERO.Game(canvas, {
+  onLevelComplete(r) {
+    if (session.mode === 'campaign') {
+      const prog = Store.get('progress', 0); if (r.levelIndex + 1 > prog) Store.set('progress', Math.min(HERO_LEVELS.length - 1, r.levelIndex + 1));
+      const best = Store.get('best', {}); if (!best[r.levelIndex] || r.score > best[r.levelIndex]) { best[r.levelIndex] = r.score; Store.set('best', best); }
+    }
+    const rows = [['Miner rescued', r.rescue], ['Power remaining', r.bonusPower], ['Dynamite left', r.bonusDyn]];
+    const html = '<p class="lead">Cavern ' + (r.levelIndex + 1) + ' · ' + esc(r.name) + '</p><table class="tally">' + rows.map(([k, v]) => '<tr><td>' + k + '</td><td class="num">+' + v + '</td></tr>').join('') + '<tr class="total"><td>Score</td><td class="num">' + r.score + '</td></tr></table>';
+    const buttons = [];
+    if (r.hasNext) buttons.push({ label: 'Next cavern', primary: true, value: 'next' });
+    else buttons.push({ label: session.mode === 'test' ? 'Back to editor' : 'Finish', primary: true, value: 'done' });
+    showModal({ title: r.hasNext ? 'Miner rescued!' : (session.mode === 'test' ? 'Test complete' : 'All miners rescued!'), html, buttons, closable: false }).then(v => {
+      if (v === 'next') { game.nextLevel(); return; }
+      endSession(r.score, true);
+    });
+  },
+  onGameOver(r) {
+    const hs = Store.get('highscore', 0), isNew = r.score > hs && session.mode === 'campaign';
+    if (isNew) Store.set('highscore', r.score);
+    showModal({ title: 'Game over', html: '<p class="lead">' + (isNew ? 'New high score!' : 'The caverns keep their secrets.') + '</p><table class="tally"><tr><td>Score</td><td class="num">' + r.score + '</td></tr><tr><td>Miners rescued</td><td class="num">' + r.rescued + '</td></tr><tr><td>Reached</td><td class="num">Cavern ' + (r.level + 1) + '</td></tr></table>',
+      buttons: [{ label: 'Try again', primary: true, value: 'retry' }, { label: session.mode === 'test' ? 'Back to editor' : 'Main menu', value: 'menu' }], closable: false })
+      .then(v => { if (v === 'retry') game.start(session.levels, session.mode === 'campaign' ? game.levelIndex : session.startIndex, {}); else endSession(r.score, false); });
+  },
+  onPauseMenu() {
+    showModal({ title: 'Paused', html: '<p>' + esc(game.level.name) + ' · Cavern ' + (game.levelIndex + 1) + '</p><p class="muted">' + esc(game.level.tip || '') + '</p>',
+      buttons: [{ label: 'Resume', primary: true, value: 'resume' }, { label: 'Restart cavern', value: 'restart' }, { label: session.mode === 'test' ? 'Back to editor' : 'Quit to menu', danger: true, value: 'quit' }] })
+      .then(v => { if (v === 'restart') game.start(session.levels, game.levelIndex, {}); else if (v === 'quit') endSession(game.score, false); else game.resume(); });
+  }
+});
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function startGame(levels, index, mode) {
+  session = { levels, mode, startIndex: index };
+  showView('game'); game.start(levels, index, {});
+  updateMenu();
+}
+function endSession() { game.state = 'idle'; game.setActive(false); showView(session.mode === 'test' ? 'editor' : 'menu'); updateMenu(); }
+
+function fitCanvas() {
+  const wrap = $('#game-wrap'); const w = wrap.clientWidth - 8, h = Math.max(200, window.innerHeight - wrap.getBoundingClientRect().top - 90);
+  let s = Math.floor(Math.min(w / HERO.VW, h / HERO.CH)); if (s < 1) s = Math.min(w / HERO.VW, h / HERO.CH);
+  canvas.style.width = Math.floor(HERO.VW * s) + 'px'; canvas.style.height = Math.floor(HERO.CH * s) + 'px';
+}
+window.addEventListener('resize', () => { if (current === 'game') fitCanvas(); });
+
+/* touch controls */
+$('#touch button').forEach(b => {
+  const k = b.dataset.key;
+  const on = e => { e.preventDefault(); game.setKey(k, true); b.classList.add('down'); };
+  const off = e => { e.preventDefault(); game.setKey(k, false); b.classList.remove('down'); };
+  b.addEventListener('touchstart', on, { passive: false }); b.addEventListener('touchend', off); b.addEventListener('touchcancel', off);
+  b.addEventListener('mousedown', on); b.addEventListener('mouseup', off); b.addEventListener('mouseleave', off);
+});
+
+/* ---------- menu ---------- */
+function updateMenu() {
+  $('#hs').textContent = String(Store.get('highscore', 0)).padStart(6, '0');
+  const prog = Store.get('progress', 0);
+  $('#progress-note').textContent = prog > 0 ? 'Furthest cavern reached: ' + (prog + 1) + ' of ' + HERO_LEVELS.length : 'No caverns explored yet';
+  const custom = Store.get('custom', []);
+  $('#custom-count').textContent = custom.length ? custom.length + ' custom cavern' + (custom.length === 1 ? '' : 's') : 'No custom caverns yet';
+  $('#btn-custom').disabled = custom.length === 0;
+}
+$('#btn-start').addEventListener('click', () => startGame(HERO_LEVELS, 0, 'campaign'));
+$('#btn-continue').addEventListener('click', () => startGame(HERO_LEVELS, Store.get('progress', 0), 'campaign'));
+$('#btn-select').addEventListener('click', () => {
+  const prog = Store.get('progress', 0), best = Store.get('best', {});
+  const grid = document.createElement('div'); grid.className = 'level-grid';
+  HERO_LEVELS.forEach((L, i) => {
+    const locked = i > prog;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'level-card' + (locked ? ' locked' : ''); b.disabled = locked;
+    b.innerHTML = '<span class="lv-num">' + (i + 1) + '</span><span class="lv-name">' + esc(L.name) + '</span><span class="lv-meta">' + L.sw + '×' + L.sh + ' screens · ' + L.power + 's power</span><span class="lv-best">' + (locked ? 'Locked' : (best[i] ? 'Best ' + best[i] : 'Not cleared')) + '</span>';
+    b.addEventListener('click', () => { closeAll(); startGame(HERO_LEVELS, i, 'campaign'); });
+    grid.appendChild(b);
+  });
+  showModal({ title: 'Select cavern', body: grid, wide: true, html: '<p class="muted">Caverns unlock as you rescue miners. Every layout is fixed, so learn the route.</p>', buttons: [{ label: 'Close', value: null }] });
+});
+function closeAll() { modalStack.slice().forEach(m => { m.wrap.classList.remove('open'); setTimeout(() => m.wrap.remove(), 160); }); modalStack = []; }
+$('#btn-custom').addEventListener('click', () => {
+  const custom = Store.get('custom', []); if (!custom.length) return;
+  const list = document.createElement('div'); list.className = 'level-grid';
+  custom.forEach((L, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'level-card';
+    b.innerHTML = '<span class="lv-num">' + (i + 1) + '</span><span class="lv-name">' + esc(L.name) + '</span><span class="lv-meta">' + L.sw + '×' + L.sh + ' screens · ' + L.power + 's power</span><span class="lv-best">Custom</span>';
+    b.addEventListener('click', () => { closeAll(); startGame(custom, i, 'custom'); });
+    list.appendChild(b);
+  });
+  showModal({ title: 'Custom caverns', body: list, wide: true, html: '<p class="muted">Play your own caverns in order, starting from the one you pick.</p>', buttons: [{ label: 'Play all from the start', primary: true, value: 'all' }, { label: 'Close', value: null }] })
+    .then(v => { if (v === 'all') startGame(custom, 0, 'custom'); });
+});
+$('#btn-help').addEventListener('click', showHelp);
+$('#nav-help').addEventListener('click', showHelp);
+function showHelp() {
+  showModal({ title: 'How to play', wide: true, html: `
+    <p class="lead">Fly Roderick Hero down the mine, rescue the trapped miner, and get out before the power pack runs dry.</p>
+    <div class="help-cols">
+      <div><h3>Controls</h3>
+        <table class="keys">
+          <tr><td><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></td><td>Walk or steer</td></tr>
+          <tr><td><kbd>↑</kbd> / <kbd>W</kbd></td><td>Helicopter pack (hold to fly)</td></tr>
+          <tr><td><kbd>Space</kbd> / <kbd>Z</kbd></td><td>Helmet laser</td></tr>
+          <tr><td><kbd>↓</kbd> / <kbd>X</kbd></td><td>Drop dynamite (must be standing)</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Pause</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Pause menu</td></tr>
+        </table></div>
+      <div><h3>The caverns</h3>
+        <ul>
+          <li><b>Walls</b> fall to dynamite, or to a long laser burn.</li>
+          <li><b>Lava</b> and <b>water</b> kill on touch. Fly over water or ride a raft.</li>
+          <li><b>Bats, spiders, moths, snakes</b> kill on touch. The laser kills them (50 pts).</li>
+          <li><b>Lanterns</b> light the screen. Shoot one and you'll be flying blind.</li>
+          <li>Stand next to a wall, drop dynamite, then get at least two tiles away. It's a 1.5 s fuse.</li>
+          <li>Power drains constantly. Rescue bonus: 1000 + 10 per power unit + 50 per dynamite stick left.</li>
+          <li>Extra life every 20,000 points. Dying sends you back to where you entered the screen.</li>
+        </ul></div>
+    </div>`, buttons: [{ label: 'Got it', primary: true, value: true }] });
+}
+$('#btn-sound').addEventListener('click', toggleSound);
+function toggleSound() { const m = !HERO.Sfx.muted; HERO.Sfx.setMuted(m); Store.set('muted', m); $('#btn-sound').textContent = m ? 'Sound: off' : 'Sound: on'; }
+if (Store.get('muted', false)) { HERO.Sfx.setMuted(true); $('#btn-sound').textContent = 'Sound: off'; }
+
+$('.nav-btn').forEach(b => b.addEventListener('click', () => {
+  const v = b.dataset.view;
+  if (current === 'game' && v !== 'game' && game.state !== 'idle') {
+    showModal({ title: 'Leave the cavern?', html: '<p>Your current run will be lost.</p>', buttons: [{ label: 'Leave', danger: true, value: true }, { label: 'Stay', value: false }] }).then(ok => { if (ok) { game.state = 'idle'; showView(v); } else game.resume(); });
+    return;
+  }
+  showView(v);
+}));
+
+/* ---------- editor wiring ---------- */
+Editor.init({ isActive: () => current === 'editor' && !modalOpen() });
+$('#ed-new').addEventListener('click', () => {
+  const body = document.createElement('div'); body.innerHTML = '<label>Screens wide <select id="new-sw">' + [1, 2, 3, 4].map(n => '<option>' + n + '</option>').join('') + '</select></label><label>Screens tall <select id="new-sh">' + [1, 2, 3, 4, 5, 6, 7, 8].map(n => '<option' + (n === 2 ? ' selected' : '') + '>' + n + '</option>').join('') + '</select></label>';
+  body.className = 'form-row';
+  confirmDiscard().then(ok => { if (!ok) return; showModal({ title: 'New cavern', body, buttons: [{ label: 'Create', primary: true, value: true }, { label: 'Cancel', value: false }] }).then(v => { if (v) Editor.newLevel(+body.querySelector('#new-sw').value, +body.querySelector('#new-sh').value); }); });
+});
+function confirmDiscard() { if (!Editor.dirty) return Promise.resolve(true); return showModal({ title: 'Unsaved changes', html: '<p>The cavern you are editing has unsaved changes. Continue anyway?</p>', buttons: [{ label: 'Discard changes', danger: true, value: true }, { label: 'Keep editing', value: false }] }).then(v => !!v); }
+$('#ed-load').addEventListener('click', () => {
+  confirmDiscard().then(ok => {
+    if (!ok) return;
+    const custom = Store.get('custom', []);
+    const body = document.createElement('div');
+    const mk = (title, arr, isCustom) => {
+      const h = document.createElement('h3'); h.textContent = title; body.appendChild(h);
+      if (!arr.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Nothing saved yet.'; body.appendChild(p); return; }
+      const ul = document.createElement('div'); ul.className = 'load-list';
+      arr.forEach((L, i) => {
+        const row = document.createElement('div'); row.className = 'load-row';
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-ghost'; b.textContent = L.name + '  (' + L.sw + '×' + L.sh + ')';
+        b.addEventListener('click', () => { closeAll(); Editor.fromDef(JSON.parse(JSON.stringify(L))); if (!isCustom) Editor.dirty = false; });
+        row.appendChild(b);
+        if (isCustom) { const d = document.createElement('button'); d.type = 'button'; d.className = 'btn btn-danger btn-sm'; d.textContent = 'Delete'; d.addEventListener('click', () => {
+          showModal({ title: 'Delete cavern', html: '<p>Delete <b>' + esc(L.name) + '</b> permanently?</p>', buttons: [{ label: 'Delete', danger: true, value: true }, { label: 'Cancel', value: false }] }).then(v => { if (v) { custom.splice(i, 1); Store.set('custom', custom); row.remove(); updateMenu(); } });
+        }); row.appendChild(d); }
+        ul.appendChild(row);
+      });
+      body.appendChild(ul);
+    };
+    mk('Your caverns', custom, true); mk('Built-in caverns (open a copy)', HERO_LEVELS, false);
+    showModal({ title: 'Open cavern', body, wide: true, buttons: [{ label: 'Close', value: null }] });
+  });
+});
+$('#ed-save').addEventListener('click', () => {
+  const def = Editor.toDef(), v = Editor.validate();
+  const custom = Store.get('custom', []), idx = custom.findIndex(c => c.name === def.name);
+  const problems = v.errors.length ? '<p class="warn">This cavern is not playable yet:</p><ul>' + v.errors.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '';
+  showModal({ title: idx >= 0 ? 'Replace cavern?' : 'Save cavern', html: problems + '<p>' + (idx >= 0 ? 'A cavern named <b>' + esc(def.name) + '</b> already exists and will be replaced.' : 'Save <b>' + esc(def.name) + '</b> to this browser?') + '</p>',
+    buttons: [{ label: idx >= 0 ? 'Replace' : 'Save', primary: true, value: true }, { label: 'Cancel', value: false }] }).then(ok => {
+      if (!ok) return; if (idx >= 0) custom[idx] = def; else custom.push(def); Store.set('custom', custom); Editor.dirty = false; updateMenu();
+      showModal({ title: 'Saved', html: '<p><b>' + esc(def.name) + '</b> is saved. Find it under Custom caverns on the main menu.</p>' });
+    });
+});
+$('#ed-validate').addEventListener('click', () => {
+  const v = Editor.validate();
+  const html = (v.ok ? '<p class="ok">The cavern is playable.</p>' : '<p class="warn">Fix these before playing:</p><ul>' + v.errors.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>') + (v.warnings.length ? '<p class="muted">Notes:</p><ul>' + v.warnings.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '');
+  showModal({ title: 'Check cavern', html });
+});
+$('#ed-test').addEventListener('click', () => {
+  const v = Editor.validate();
+  if (!v.ok) { showModal({ title: 'Not playable yet', html: '<ul>' + v.errors.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' }); return; }
+  startGame([Editor.toDef()], 0, 'test');
+});
+$('#ed-export').addEventListener('click', () => {
+  const json = JSON.stringify(Editor.toDef(), null, 1).replace(/\[\n\s+"/g, '[\n  "').replace(/",\n\s+"/g, '",\n  "').replace(/"\n\s+\]/g, '"\n ]');
+  const body = document.createElement('div'); const ta = document.createElement('textarea'); ta.readOnly = true; ta.value = json; ta.rows = 14; body.appendChild(ta);
+  showModal({ title: 'Export cavern', body, wide: true, html: '<p class="muted">Copy this JSON to share the cavern. Paste it into Import on any copy of the game.</p>',
+    buttons: [{ label: 'Copy to clipboard', primary: true, value: 'copy', onClick: () => { ta.select(); try { navigator.clipboard.writeText(ta.value); } catch (e) { document.execCommand('copy'); } return false; } }, { label: 'Close', value: null }] });
+});
+$('#ed-import').addEventListener('click', () => {
+  const body = document.createElement('div'); const ta = document.createElement('textarea'); ta.rows = 14; ta.placeholder = 'Paste cavern JSON here'; body.appendChild(ta);
+  showModal({ title: 'Import cavern', body, wide: true, buttons: [{ label: 'Import', primary: true, value: true, onClick: () => {
+    let def; try { def = JSON.parse(ta.value); } catch (e) { ta.classList.add('bad'); return false; }
+    if (!def || !Array.isArray(def.map)) { ta.classList.add('bad'); return false; }
+    def.sw = Math.max(1, Math.min(4, +def.sw || Math.ceil((def.map[0] || '').length / 20))); def.sh = Math.max(1, Math.min(8, +def.sh || Math.ceil(def.map.length / 12)));
+    Editor.fromDef(def); Editor.dirty = true; return true;
+  } }, { label: 'Cancel', value: false }] });
+});
+$('#ed-back').addEventListener('click', () => showView('menu'));
+
+/* ---------- boot ---------- */
+updateMenu();
+showView('menu');
+})();
+
+</script>
+</body>
+</html>

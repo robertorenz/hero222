@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H.E.R.O. Revamped</title>
+<meta name="description" content="A faithful remake of the 1984 cavern-rescue classic with fixed, memorisable caverns and a built-in level editor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">H.E.R.O.</span><span class="brand-sub">Revamped</span></div>
+    <nav class="nav">
+      <button type="button" class="nav-btn" data-view="menu">Menu</button>
+      <button type="button" class="nav-btn" data-view="editor">Cavern editor</button>
+      <button type="button" class="nav-btn-plain" id="nav-help">Help</button>
+      <button type="button" class="nav-btn-plain" id="btn-sound">Sound: on</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= MENU ================= -->
+    <section id="view-menu" class="view view-menu">
+      <div class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Helicopter Emergency Rescue Operation</p>
+          <h1>Eight caverns.<br>One route each.<br>Learn them.</h1>
+          <p class="lead">Fly Roderick Hero down the mine shafts, blast through walls, dodge the wildlife, and bring every trapped miner home before the power pack runs dry. The caverns never change, so the map in your head is your best equipment.</p>
+          <div class="cta-row">
+            <button type="button" class="btn btn-primary btn-lg" id="btn-start">Start from cavern 1</button>
+            <button type="button" class="btn btn-ghost btn-lg" id="btn-continue">Continue</button>
+            <button type="button" class="btn btn-ghost btn-lg" id="btn-select">Select cavern</button>
+          </div>
+          <p class="muted" id="progress-note">No caverns explored yet</p>
+        </div>
+        <aside class="hero-side">
+          <div class="stat">
+            <span class="stat-label">High score</span>
+            <span class="stat-value" id="hs">000000</span>
+          </div>
+          <div class="side-block">
+            <h3>Your caverns</h3>
+            <p class="muted" id="custom-count">No custom caverns yet</p>
+            <div class="btn-col">
+              <button type="button" class="btn btn-ghost" id="btn-custom" disabled>Play custom caverns</button>
+              <button type="button" class="btn btn-ghost nav-btn" data-view="editor">Open the cavern editor</button>
+              <button type="button" class="btn btn-ghost" id="btn-help">How to play</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="sw sw-rock"></span><div><b>Rock</b><span>Indestructible</span></div></div>
+        <div class="legend-item"><span class="sw sw-wall"></span><div><b>Wall</b><span>Dynamite or laser</span></div></div>
+        <div class="legend-item"><span class="sw sw-lava"></span><div><b>Lava</b><span>Deadly</span></div></div>
+        <div class="legend-item"><span class="sw sw-water"></span><div><b>Water</b><span>Deadly, rafts float</span></div></div>
+        <div class="legend-item"><span class="sw sw-power"></span><div><b>Power</b><span>Drains every second</span></div></div>
+        <div class="legend-item"><span class="sw sw-tnt"></span><div><b>Dynamite</b><span>6 sticks per life</span></div></div>
+      </div>
+    </section>
+
+    <!-- ================= GAME ================= -->
+    <section id="view-game" class="view view-game" hidden>
+      <div id="game-wrap" class="game-wrap">
+        <canvas id="game" width="320" height="216" aria-label="Game screen"></canvas>
+      </div>
+      <div class="controls-hint">
+        <span><kbd>←</kbd><kbd>→</kbd> move</span><span><kbd>↑</kbd> fly</span><span><kbd>Space</kbd> laser</span><span><kbd>↓</kbd> dynamite</span><span><kbd>P</kbd> pause</span><span><kbd>Esc</kbd> menu</span>
+      </div>
+      <div id="touch" class="touch">
+        <div class="touch-group">
+          <button type="button" data-key="left" aria-label="Left">◀</button>
+          <button type="button" data-key="right" aria-label="Right">▶</button>
+        </div>
+        <div class="touch-group">
+          <button type="button" data-key="dyn" aria-label="Dynamite">TNT</button>
+          <button type="button" data-key="fire" aria-label="Laser">LASER</button>
+          <button type="button" data-key="up" aria-label="Fly">FLY</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EDITOR ================= -->
+    <section id="view-editor" class="view view-editor" hidden>
+      <div class="editor-layout">
+        <aside class="editor-side">
+          <div class="panel">
+            <h3>Cavern</h3>
+            <label class="field">Name<input type="text" id="ed-name" maxlength="40" autocomplete="off"></label>
+            <label class="field">Route tip (shown on pause)<input type="text" id="ed-tip" maxlength="120" autocomplete="off"></label>
+            <div class="field-row">
+              <label class="field">Power (s)<input type="number" id="ed-power" min="10" max="600" step="5"></label>
+              <label class="field">Dynamite<input type="number" id="ed-dyn" min="0" max="12"></label>
+            </div>
+            <div class="field-row">
+              <label class="field">Screens wide<select id="ed-sw"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+              <label class="field">Screens tall<select id="ed-sh"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+            </div>
+            <div class="field-row">
+              <label class="field">Zoom<select id="ed-zoom"><option value="8">Small</option><option value="12" selected>Medium</option><option value="16">Large</option><option value="24">Huge</option></select></label>
+              <label class="field check"><input type="checkbox" id="ed-rect"> Rectangle drag</label>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Tools</h3>
+            <div id="editor-tools" class="tools"></div>
+            <p class="muted small" id="editor-tool-hint"></p>
+          </div>
+          <div class="panel">
+            <h3>Actions</h3>
+            <div class="btn-grid">
+              <button type="button" class="btn btn-primary" id="ed-test">Test play</button>
+              <button type="button" class="btn btn-ghost" id="ed-validate">Check</button>
+              <button type="button" class="btn btn-ghost" id="ed-save">Save</button>
+              <button type="button" class="btn btn-ghost" id="ed-load">Open</button>
+              <button type="button" class="btn btn-ghost" id="ed-new">New</button>
+              <button type="button" class="btn btn-ghost" id="ed-undo">Undo</button>
+              <button type="button" class="btn btn-ghost" id="ed-redo">Redo</button>
+              <button type="button" class="btn btn-ghost" id="ed-export">Export</button>
+              <button type="button" class="btn btn-ghost" id="ed-import">Import</button>
+              <button type="button" class="btn btn-ghost" id="ed-fill-rock">Fill rock</button>
+              <button type="button" class="btn btn-ghost" id="ed-clear">Clear</button>
+              <button type="button" class="btn btn-ghost" id="ed-back">Main menu</button>
+            </div>
+          </div>
+          <div class="panel hint">
+            <h3>Design notes</h3>
+            <ul>
+              <li>Each screen is 20 × 12 tiles. Cyan lines mark screen edges; the view flips when the hero crosses one.</li>
+              <li>The hero respawns where they entered the screen, so keep entry points clear of lava.</li>
+              <li>Dynamite must be dropped while standing. Give each wall a floor beside it.</li>
+              <li>A blast clears the dynamite tile, two tiles in each direction, and the diagonals.</li>
+              <li>Saved caverns live in this browser. Use Export to share them.</li>
+            </ul>
+          </div>
+        </aside>
+        <div class="editor-main">
+          <div class="editor-scroll"><canvas id="editor-canvas"></canvas></div>
+          <div class="editor-status" id="editor-status"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot">A tribute to the 1984 Activision classic by John Van Ryzin. Built with plain HTML5 canvas — no plugins, nothing to install.</footer>
+</div>
+<div id="modal-root"></div>
+<script src="js/levels.js"></script>
+<script src="js/game.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
