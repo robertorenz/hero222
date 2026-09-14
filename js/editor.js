@@ -88,7 +88,7 @@ function render() {
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
     const ch = g[y][x], px = x * ts, py = y * ts;
     if ('.#WL~'.includes(ch)) continue;
-    const spr = { P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[ch];
+    const spr = { P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider0, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[ch];
     if (!spr) continue;
     if (ch === 'r') ctx.drawImage(spr, px - 8 * k, py + 12 * k, 32 * k, 6 * k);
     else ctx.drawImage(spr, px + (16 - spr.width) / 2 * k, py + (16 - spr.height) * k, spr.width * k, spr.height * k);
@@ -116,7 +116,7 @@ function buildToolbar() {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'tool' + (t.c === tool ? ' active' : ''); b.dataset.c = t.c; b.title = t.hint + ' (' + t.key + ')';
     const ic = document.createElement('canvas'); ic.width = 24; ic.height = 24; const x = ic.getContext('2d'); x.imageSmoothingEnabled = false;
     x.fillStyle = '#0b1220'; x.fillRect(0, 0, 24, 24);
-    const img = { '#': T.rock[0], 'W': T.wall, 'L': T.lava[0], '~': T.water[0], P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[t.c];
+    const img = { '#': T.rock[0], 'W': T.wall, 'L': T.lava[0], '~': T.water[0], P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider0, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[t.c];
     if (img) { const k = Math.min(24 / img.width, 24 / img.height, 1.5); x.drawImage(img, (24 - img.width * k) / 2, (24 - img.height * k) / 2, img.width * k, img.height * k); }
     b.appendChild(ic);
     const s = document.createElement('span'); s.textContent = t.name; b.appendChild(s);

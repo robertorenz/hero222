@@ -795,49 +795,50 @@ function validateLevel(def) {
 
 /* ---------- pixel art ---------- */
 const PAL = {
-  k: '#101418', w: '#f8fafc', r: '#dc2626', o: '#f59e0b', y: '#fde047', b: '#2563eb', c: '#22d3ee',
-  s: '#f2c9a0', n: '#8b5a2b', g: '#94a3b8', e: '#16a34a', d: '#475569', t: '#d6c08a', a: '#d97706', h: '#1e3a8a'
+  k: '#101418', K: '#374151', g: '#94a3b8', G: '#cbd5e1', w: '#f8fafc', y: '#fde047',
+  Y: '#ca8a04', s: '#f2c9a0', S: '#c9926a', h: '#1e3a8a', H: '#3b82f6', b: '#2563eb',
+  B: '#1e40af', r: '#dc2626', R: '#7f1d1d', o: '#f59e0b', O: '#b45309', n: '#8b5a2b',
+  N: '#5c3a1b', t: '#d6c08a', T: '#ead9b0', e: '#16a34a', E: '#14532d', v: '#4ade80',
+  c: '#22d3ee', C: '#0e7490', p: '#fda4af', m: '#6b7280'
 };
+// Hero: 16x16, facing right. Row 0 is the rotor (4 frames), rows 1-12 the body, rows 13-15 the legs (walk 0-2, airborne 3).
+const HERO_PROP = ['..GGGGGGGGGGGG..', '....GGGGGGGG....', '.......GG.......', '....GGGGGGGG....'];
 const HERO_BODY = [
-  '.....kk.....',
-  '...yyyyyy...',
-  '..yyyyyyyy..',
-  '..yyyyyyrr..',
-  '...ssssss...',
-  '...skssks...',
-  '...ssssss...',
-  '..hhhhhhhh..',
-  '.hhhhhhhhhh.',
-  '.hh.hhhh.hh.',
-  '.ss.hhhh.ss.',
-  '....hhhh....',
+  '.......KK.......',
+  '......yyyy......',
+  '.....yyyyyyy....',
+  '....yyyyyyyyy...',
+  '....YYYYYYYYYr..',
+  '.....ssssskcr...',
+  '.....Ssssssss...',
+  '......ssss......',
+  '..KKK.hhhhhh....',
+  '..KgKhhhhhhhhs..',
+  '..KKK.hhhhhh....',
+  '......HHhhhh....',
 ];
 const HERO_LEGS = [
-  ['....hh.hh...', '....hh.hh...', '...kkk.kkk..'],
-  ['...hh...hh..', '..hh.....hh.', '.kkk.....kkk'],
-  ['....hh.hh...', '....hh.hh...', '...kkk.kkk..'],
+  ['......hh..hh....', '......hh..hh....', '.....KKK.KKK....'],
+  ['.....hh...hh....', '....hh.....hh...', '...KKK.....KKK..'],
+  ['......hh..hh....', '......hh..hh....', '.....KKK.KKK....'],
+  ['.......hhhh.....', '.......hh.hh....', '......KKK.KKK...'],
 ];
-const HERO_PROP = ['gggggggggggg', '..gggggggg..', '.....gg.....', '..gggggggg..'];
 const SPR = {
-  miner: [
-    '...oooooo...', '..oooooooo..', '..oooooooo..', '...ssssss...', '...skssks...', '...ssssss...',
-    '..nnnnnnnn.s', '.nnnnnnnnn.s', '.nn.nnnn.nns', '.ss.nnnn.ss.', '....nnnn....', '....nnnn....',
-    '....nn.nn...', '....nn.nn...', '...kkk.kkk..', '............'],
-  miner2: [
-    '...oooooo..s', '..oooooooo.s', '..oooooooo.s', '...ssssss..n', '...skssks..n', '...ssssss.nn',
-    '..nnnnnnnnn.', '.nnnnnnnnnn.', '.nn.nnnn....', '.ss.nnnn....', '....nnnn....', '....nnnn....',
-    '....nn.nn...', '....nn.nn...', '...kkk.kkk..', '............'],
-  bat0: ['k..............k', 'kk............kk', 'kkk....kk....kkk', '.kkkk.kkkk.kkkk.', '..kkkkkrrkkkkk..', '....kkkkkkkk....', '......k..k......', '................'],
-  bat1: ['................', '................', '......k..k......', '...kkkkkkkkkk...', 'kkkkkkkrrkkkkkkk', 'kkk...kkkk...kkk', 'k......kk......k', '................'],
-  spider: ['..k......k..', '...k....k...', 'k...kkkk...k', '.kkkkkkkkkk.', '..kkkkkkkk..', '..kkrkkrkk..', '.kkkkkkkkkk.', 'k..kkkkkk..k', '...k....k...', '..k......k..'],
-  moth0: ['ttt......ttt', 'tttt....tttt', '.tttt..tttt.', '..ttkkkktt..', '..ttkkkktt..', '.tttt..tttt.', 'tttt....tttt', 'ttt......ttt'],
-  moth1: ['............', '............', 'tt........tt', 'tttt.kk.tttt', 'tttt.kk.tttt', 'tt........tt', '............', '............'],
-  snake0: ['..........ee....', '.........eeee...', '........eerkee..', '........eeee.rr.', '..eeeeeeeee.....', '.eeeeeeeeeee....', 'ee...eeeeeeeee..', 'e.......eeeeeee.', '..........eeee..', '................'],
-  snake1: ['..........ee....', '.........eeee...', '........eerkee..', '........eeee....', '..eeeeeeeee.....', '.eeeeeeeeeee....', 'ee...eeeeeeeee..', 'e.......eeeeeee.', '..........eeee..', '................'],
-  lantern: ['...kk...', '..kkkk..', '.k....k.', '.kyyyyk.', '.kyyyyk.', '.kyooyk.', '.kyooyk.', '.kyyyyk.', '.k....k.', '..kkkk..', '...kk...', '........'],
-  raft: ['nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', 'nkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkn', 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', 'nkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkn', 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', '.n............................n.'],
-  dynamite: ['...o..', '..o...', '..k...', '.rrrr.', '.rrrr.', '.rwrr.', '.rrrr.', '.rrrr.'],
-  life: ['.gggggg.', '...kk...', '..yyyy..', '..yyyy..', '..hhhh..', '.hhhhhh.', '..h..h..', '..k..k..'],
+  miner: ['....oooooo....', '...oooooooo...', '..OOOOwwOOOO..', '....ssssss....', '....skssks....', '....ssssss....', '.....SSSS.....', '..nnbbbbbbnn..', '.nnnbbbbbbnnn.', '.ss.bbbbbb.ss.', '....bbbbbb....', '....bBbbBb....', '....bb..bb....', '....bb..bb....', '....bb..bb....', '...KKK..KKK...'],
+  miner2: ['....oooooo..s.', '...oooooooo.n.', '..OOOOwwOOOOn.', '....ssssss..n.', '....skssks..n.', '....ssssss.nn.', '.....SSSS.nn..', '..nnbbbbbbnn..', '.nnnbbbbbbn...', '.ss.bbbbbb....', '....bbbbbb....', '....bBbbBb....', '....bb..bb....', '....bb..bb....', '....bb..bb....', '...KKK..KKK...'],
+  bat0: ['KK............KK', 'KKK..........KKK', 'KKKK...pp...KKKK', '.KKKK.NNNN.KKKK.', '..KKKKNrrNKKKK..', '...KKKNNNNKKK...', '....KKNwwNKK....', '.....K.NN.K.....', '................', '................'],
+  bat1: ['................', '................', '.......pp.......', 'KKKKK.NNNN.KKKKK', 'KKKKKKNrrNKKKKKK', '.KKKKKNNNNKKKK..', '....KKNwwNKK....', '.....K.NN.K.....', '................', '................'],
+  bat2: ['................', '................', '.......pp.......', '......NNNN......', '...KKKNrrNKKKK..', 'KKKKKKNNNNKKKKKK', 'KKK..KNwwNK..KKK', 'K.....K.NN.K...K', '................', '................'],
+  spider0: ['.K..........K.', '..K...KK...K..', '...K.nnnn.K...', 'K...nNNNNn...K', '.KKKNNnnNNKKK.', '..KKNrNNrNKK..', '...KNNNNNNK...', 'K..KnNNNNnK..K', '.KK.nnNNnn.KK.', '..K..K..K..K..', '.K..K....K..K.', 'K...........K.'],
+  spider1: ['..K........K..', '..K...KK...K..', '..K..nnnn..K..', '.K..nNNNNn..K.', '.KKKNNnnNNKKK.', '..KKNrNNrNKK..', '...KNNNNNNK...', '.K.KnNNNNnK.K.', '.KK.nnNNnn.KK.', '.K...K..K...K.', '.K..K....K..K.', '.K..........K.'],
+  moth0: ['.K..........K.', '..K...KK...K..', 'tttt..KK..tttt', 'tToTt.KK.tToTt', 'tTTTtKKKKtTTTt', '.tttotKKtottt.', '..ttttKKtttt..', '..tt...KK...tt', '......KK......', '..............'],
+  moth1: ['.K..........K.', '..K...KK...K..', '.....tKKt.....', '....tTKKTt....', '....toKKot....', '....ttKKtt....', '.....tKKt.....', '......KK......', '......KK......', '..............'],
+  snake0: ['...........vee..', '..........veeee.', '..........eekek.', '...........eee.r', '....eeeeee.eee..', '...eevvvveeeee..', '..eevvEEvveee...', '..eeeeEEeeee....', '...eeeeeeee.....', '................'],
+  snake1: ['...........vee..', '..........veeee.', '..........eekek.', '...........eee..', '....eeeeee.eee..', '...eevvvveeeee..', '..eevvEEvveee...', '..eeeeEEeeee....', '...eeeeeeee.....', '................'],
+  lantern: ['...KK...', '..KKKK..', '.K....K.', '.KyyyyK.', '.KyTTyK.', '.KyTwyK.', '.KyTTyK.', '.KyyyyK.', '.K....K.', '..KKKK..', '...KK...', '........'],
+  raft: ['NnnnnnnnNNnnnnnnnNNnnnnnnnNNnnnn', 'nTTTTTTTnnTTTTTTTnnTTTTTTTnnTTTT', 'NnnnnnnnNNnnnnnnnNNnnnnnnnNNnnnn', 'nTTTTTTTnnTTTTTTTnnTTTTTTTnnTTTT', 'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN', '.N............................N.'],
+  dynamite: ['...o..', '..o...', '..k...', '.rrrr.', '.rRrr.', '.rwrr.', '.rRrr.', '.rrrr.'],
+  life: ['.GGGGGG.', '...KK...', '..yyyy..', '..yyyy..', '..hhhh..', '.hhhhhh.', '..h..h..', '..K..K..'],
 };
 
 let sprites = null, tilesImg = null;
@@ -859,10 +860,10 @@ function initAssets() {
   if (sprites) return;
   sprites = {};
   sprites.hero = []; // [propFrame][legFrame] facing right
-  for (let p = 0; p < 4; p++) { sprites.hero[p] = []; for (let l = 0; l < 3; l++) sprites.hero[p][l] = makeSprite([HERO_PROP[p], ...HERO_BODY, ...HERO_LEGS[l]]); }
+  for (let p = 0; p < 4; p++) { sprites.hero[p] = []; for (let l = 0; l < HERO_LEGS.length; l++) sprites.hero[p][l] = makeSprite([HERO_PROP[p], ...HERO_BODY, ...HERO_LEGS[l]]); }
   sprites.heroL = sprites.hero.map(row => row.map(flip));
   for (const k in SPR) sprites[k] = makeSprite(SPR[k]);
-  sprites.batL = [flip(sprites.bat0), flip(sprites.bat1)];
+  sprites.batL = [flip(sprites.bat0), flip(sprites.bat1), flip(sprites.bat2)];
   sprites.snakeL = [flip(sprites.snake0), flip(sprites.snake1)];
 
   tilesImg = { rock: [], wall: null, lava: [], water: [] };
@@ -1003,18 +1004,18 @@ class Game {
   makeEntity(d, L) {
     const e = { type: d.type, tx: d.tx, ty: d.ty, alive: true, t: 0, sx: (d.tx / SW) | 0, sy: (d.ty / SH) | 0, x: d.tx * TILE, y: d.ty * TILE, w: 12, h: 12, vx: 0 };
     switch (d.type) {
-      case 'bat': e.w = 16; e.h = 8; e.y0 = e.y + 4; e.y = e.y0; e.vx = -0.8; break;
+      case 'bat': e.w = 16; e.h = 10; e.y0 = e.y + 3; e.y = e.y0; e.vx = -0.8; break;
       case 'spider': {
-        e.w = 12; e.h = 10; e.x = d.tx * TILE + 2; e.anchorY = d.ty * TILE;
+        e.w = 14; e.h = 12; e.x = d.tx * TILE + 1; e.anchorY = d.ty * TILE;
         let drop = 0; for (let k = 1; k <= 3; k++) { if (this.solidTile(L, d.tx, d.ty + k)) break; drop = k; }
         e.range = drop * TILE + 6;
         let top = d.ty; for (let k = 1; k <= 12; k++) { if (d.ty - k < 0 || this.solidTile(L, d.tx, d.ty - k)) { top = d.ty - k + 1; break; } }
         e.threadY = top * TILE; e.t = (d.tx * 37) % 200; break;
       }
-      case 'moth': e.w = 12; e.h = 8; e.x0 = e.x + 2; e.y0 = e.y + 4; e.t = (d.tx * 13) % 100; break;
+      case 'moth': e.w = 14; e.h = 10; e.x0 = e.x + 1; e.y0 = e.y + 3; e.t = (d.tx * 13) % 100; break;
       case 'snake': e.w = 16; e.h = 10; e.y = d.ty * TILE + 6; break;
       case 'lantern': e.w = 8; e.h = 12; e.x = d.tx * TILE + 4; e.y = d.ty * TILE + 2; break;
-      case 'miner': e.w = 12; e.h = 16; e.x = d.tx * TILE + 2; break;
+      case 'miner': e.w = 14; e.h = 16; e.x = d.tx * TILE + 1; break;
       case 'raft': {
         e.w = 32; e.h = 6; e.y = d.ty * TILE + 12; e.vx = 0.5;
         let lx = d.tx, rx = d.tx;
@@ -1264,8 +1265,8 @@ class Game {
       if (!e.alive || !this.onScreen(e)) continue;
       const x = Math.round(e.x), y = Math.round(e.y);
       switch (e.type) {
-        case 'bat': ctx.drawImage(e.vx < 0 ? sprites['bat' + ((e.t >> 3) & 1)] : sprites.batL[(e.t >> 3) & 1], x, y); break;
-        case 'spider': ctx.fillStyle = '#cbd5e1'; ctx.fillRect(x + 5, e.threadY, 1, y - e.threadY + 2); ctx.drawImage(sprites.spider, x, y); break;
+        case 'bat': { const fr = [0, 1, 2, 1][(e.t >> 2) & 3]; ctx.drawImage(e.vx < 0 ? sprites['bat' + fr] : sprites.batL[fr], x, y); break; }
+        case 'spider': ctx.fillStyle = '#cbd5e1'; ctx.fillRect(x + 6, e.threadY, 1, y - e.threadY + 2); ctx.drawImage(sprites['spider' + ((e.t >> 4) & 1)], x, y); break;
         case 'moth': ctx.drawImage(sprites['moth' + ((e.t >> 2) & 1)], x, y); break;
         case 'snake': ctx.drawImage(sprites['snake' + ((e.t >> 4) & 1)], x, y); break;
         case 'lantern': {
@@ -1283,9 +1284,9 @@ class Game {
     if (this.state !== 'dying' || (f >> 2) & 1) {
       if (!(this.invuln > 0 && (f >> 2) & 1)) {
         const prop = p.flying ? (f >> 1) & 3 : (this.state === 'dying' ? (f >> 1) & 3 : 0);
-        const leg = p.onGround && p.walk ? ((p.walk >> 3) % 3) : (p.onGround ? 0 : 1);
+        const leg = p.onGround && p.walk ? ((p.walk >> 3) % 3) : (p.onGround ? 0 : 3);
         const img = (p.facing > 0 ? sprites.hero : sprites.heroL)[prop][leg];
-        ctx.drawImage(img, Math.round(p.x) - 1, Math.round(p.y) - 2);
+        ctx.drawImage(img, Math.round(p.x) - 3, Math.round(p.y) - 2);
       }
     }
     if (p.beam && this.state === 'playing') {
@@ -1457,7 +1458,7 @@ function render() {
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
     const ch = g[y][x], px = x * ts, py = y * ts;
     if ('.#WL~'.includes(ch)) continue;
-    const spr = { P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[ch];
+    const spr = { P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider0, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[ch];
     if (!spr) continue;
     if (ch === 'r') ctx.drawImage(spr, px - 8 * k, py + 12 * k, 32 * k, 6 * k);
     else ctx.drawImage(spr, px + (16 - spr.width) / 2 * k, py + (16 - spr.height) * k, spr.width * k, spr.height * k);
@@ -1485,7 +1486,7 @@ function buildToolbar() {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'tool' + (t.c === tool ? ' active' : ''); b.dataset.c = t.c; b.title = t.hint + ' (' + t.key + ')';
     const ic = document.createElement('canvas'); ic.width = 24; ic.height = 24; const x = ic.getContext('2d'); x.imageSmoothingEnabled = false;
     x.fillStyle = '#0b1220'; x.fillRect(0, 0, 24, 24);
-    const img = { '#': T.rock[0], 'W': T.wall, 'L': T.lava[0], '~': T.water[0], P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[t.c];
+    const img = { '#': T.rock[0], 'W': T.wall, 'L': T.lava[0], '~': T.water[0], P: S.hero[0][0], M: S.miner, b: S.bat0, s: S.spider0, m: S.moth0, n: S.snake0, l: S.lantern, r: S.raft }[t.c];
     if (img) { const k = Math.min(24 / img.width, 24 / img.height, 1.5); x.drawImage(img, (24 - img.width * k) / 2, (24 - img.height * k) / 2, img.width * k, img.height * k); }
     b.appendChild(ic);
     const s = document.createElement('span'); s.textContent = t.name; b.appendChild(s);
