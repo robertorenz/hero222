@@ -9,6 +9,10 @@ The two design goals:
 
 ## Play
 
+Play online: https://claude.ai/code/artifact/0d81be73-8d0e-4fad-a036-a99898d86c94
+
+Source: https://github.com/robertorenz/hero222
+
 Open `index.html` in any modern browser (Chrome, Edge, Firefox, Safari). Touch controls appear automatically on phones and tablets.
 
 | Key | Action |
