@@ -9,9 +9,9 @@ The two design goals:
 
 ## Play
 
-Play online: https://claude.ai/code/artifact/0d81be73-8d0e-4fad-a036-a99898d86c94
+Play online: **https://robertorenz.github.io/hero222/**
 
-Source: https://github.com/robertorenz/hero222
+Source: https://github.com/robertorenz/hero222 · Claude artifact mirror: https://claude.ai/code/artifact/0d81be73-8d0e-4fad-a036-a99898d86c94
 
 Open `index.html` in any modern browser (Chrome, Edge, Firefox, Safari). Touch controls appear automatically on phones and tablets.
 
@@ -94,9 +94,21 @@ js/game.js        engine: parsing, physics, entities, rendering, sound
 js/editor.js      cavern editor
 js/main.js        menus, modals, storage, wiring
 tools/build.js    bundles everything into dist/hero.html (single shareable file)
+tools/check-levels.js  validates the built-in caverns (run in CI)
+.github/workflows/deploy.yml  GitHub Pages deployment
 ```
 
 Run `node tools/build.js` to regenerate the single-file build in `dist/`.
+
+## Deployment
+
+Every push to `main` runs the GitHub Actions workflow in `.github/workflows/deploy.yml`:
+
+1. `node tools/check-levels.js` validates every built-in cavern (size, characters, one start, one miner, miner reachable). A broken cavern fails the build.
+2. `node tools/build.js` regenerates the single-file bundles.
+3. The site (`index.html`, `css/`, `js/`, `dist/`) is uploaded and published to GitHub Pages at https://robertorenz.github.io/hero222/.
+
+The workflow can also be started by hand from the Actions tab (*Run workflow*). Pages is configured with the *GitHub Actions* source; no branch or folder setting is needed.
 
 ## Credits
 
